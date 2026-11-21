@@ -1,0 +1,4 @@
+{
+  "_note": "No free API covers token unlocks reliably. Add unlock or upgrade events here (or in the app's Events panel) and they show on the dashboard and trigger Telegram reminders.",
+  "events": []
+}
