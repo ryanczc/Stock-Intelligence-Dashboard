@@ -77,8 +77,10 @@ export default function Holdings() {
                     <td><Sparkline points={data?.market[h.symbol]?.history} /></td>
                     <td className="num">{money(h.valueSgd, undefined, 0)}</td>
                     <td className={`num ${tone(h.unrealizedSgd)}`}>
-                      {money(h.unrealizedSgd, undefined, 0)}
-                      <div className="small">{pct(h.unrealizedPct, 1, true)}</div>
+                      {h.price == null ? <span className="muted small">no price yet</span> : <>
+                        {money(h.unrealizedSgd, undefined, 0)}
+                        <div className="small">{pct(h.unrealizedPct, 1, true)}</div>
+                      </>}
                     </td>
                     <td className="num">{pct(totals.valueSgd ? h.valueSgd / totals.valueSgd : null)}</td>
                     <td className="num">{v.dcf}</td>

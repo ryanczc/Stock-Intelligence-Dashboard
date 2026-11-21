@@ -100,25 +100,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
     await mutate(async (s) => {
       await s.upsertTransactions([
-        t("AAPL", "2024-03-12", 20, 172.5, "USD", 1.335, "Tiger", "buy", 1.99),
-        t("AAPL", "2025-04-08", 10, 181.0, "USD", 1.34, "Longbridge", "buy", 0.99),
-        t("MSFT", "2024-08-05", 8, 395.0, "USD", 1.325, "Tiger", "buy", 1.99),
-        t("NVDA", "2025-01-27", 40, 118.0, "USD", 1.355, "Longbridge", "buy", 0.99),
-        t("NVDA", "2025-06-10", 10, 142.0, "USD", 1.285, "Longbridge", "sell", 0.99),
-        t("D05.SI", "2024-05-20", 300, 35.2, "SGD", 1, "Tiger", "buy", 4.5),
-        t("D05.SI", "2025-08-14", 1, 225, "SGD", 1, "Tiger", "dividend"),
-        t("C38U.SI", "2024-11-02", 3000, 1.98, "SGD", 1, "Syfe", "buy", 2.0),
-        t("ES3.SI", "2025-02-03", 500, 3.85, "SGD", 1, "Syfe"),
-        t("0700.HK", "2025-03-18", 200, 505.0, "HKD", 0.172, "Longbridge", "buy", 15),
-        t("BTC-USD", "2024-10-10", 0.15, 60500, "USD", 1.31, "Crypto"),
-        t("ETH-USD", "2025-02-20", 2, 2700, "USD", 1.34, "Crypto"),
-        t("CASH-SGD", "2025-01-01", 8000, 1, "SGD", 1, "Tiger", "deposit"),
+        t("NOW", "2025-06-12", 40, 98.5, "USD", 1.285, "Tiger", "buy", 1.99),
+        t("VST", "2025-03-04", 20, 128.0, "USD", 1.34, "Longbridge", "buy", 0.99),
+        t("CEG", "2025-05-20", 8, 265.0, "USD", 1.295, "Tiger", "buy", 1.99),
+        t("SOFI", "2025-01-15", 400, 14.2, "USD", 1.37, "Longbridge", "buy", 0.99),
+        t("IREN", "2025-07-08", 300, 13.1, "USD", 1.275, "Longbridge", "buy", 0.99),
+        t("FPS", "2026-03-10", 150, 21.0, "USD", 1.3, "Tiger", "buy", 1.99),
+        t("ATAT", "2025-09-02", 100, 35.5, "USD", 1.285, "Tiger", "buy", 1.99),
+        t("GRAB", "2025-02-11", 2000, 4.6, "USD", 1.35, "Syfe", "buy", 2.5),
+        t("SE", "2025-04-22", 30, 118.0, "USD", 1.31, "Syfe", "buy", 2.5),
+        t("MSTR", "2025-08-18", 10, 360.0, "USD", 1.28, "Syfe", "buy", 2.5),
+        t("BMNR", "2025-10-06", 200, 48.0, "USD", 1.29, "Syfe", "buy", 2.5),
+        t("BTC-USD", "2024-10-10", 0.05, 60500, "USD", 1.31, "Crypto"),
+        t("PENDLE-USD", "2025-05-01", 800, 3.6, "USD", 1.30, "Crypto"),
+        t("PURR-USD", "2025-09-15", 20000, 0.2, "USD", 1.28, "Crypto"),
+        t("SYRUP-USD", "2025-08-01", 10000, 0.45, "USD", 1.285, "Crypto"),
+        t("KNTQ-USD", "2026-02-01", 5000, 0.3, "USD", 1.27, "Crypto"),
+        t("CARDS-USD", "2026-01-12", 8000, 0.25, "USD", 1.29, "Crypto"),
+        t("CASH-SGD", "2025-01-01", 5000, 1, "SGD", 1, "Tiger", "deposit"),
       ]);
-      for (const w of ["MSFT", "0700.HK"]) await s.setWatch(w, true);
+      for (const w of ["AAPL", "D05.SI", "C38U.SI", "0700.HK"]) await s.setWatch(w, true);
       await s.saveInstrument({ symbol: "BTC-USD", asset_class: "crypto", extra: { targetPrice5y: 150000 } });
-      await s.saveInstrument({ symbol: "ETH-USD", asset_class: "crypto", extra: { targetPrice5y: 5000 } });
       await s.saveInstrument({ symbol: "CASH-SGD", name: "Cash (SGD)", asset_class: "cash", currency: "SGD", manual_price: 1 });
-      await s.saveThesis("AAPL", "Services mix shift keeps margins high; watch China demand and AI upgrade cycle.");
+      await s.saveThesis("VST", "Sample note: power demand from data centres; watch hedged margins and buyback pace.");
     });
   }, [mutate]);
 

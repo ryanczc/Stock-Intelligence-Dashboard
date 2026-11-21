@@ -71,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
             print(summarize(doc))
         except Exception as e:  # noqa: BLE001
             failures.append(s)
-            print(f"{s}: FAILED {e}", file=sys.stderr)
+            print(f"{s}: FAILED {e}")
         time.sleep(0.5)  # be polite to Yahoo
 
     currencies = {d.get("currency") for d in docs} | {d.get("reportingCurrency") for d in docs} | {"USD", "HKD", "CNY", "EUR"}

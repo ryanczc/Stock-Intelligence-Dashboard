@@ -18,10 +18,11 @@ IDS_FILE = pathlib.Path(__file__).resolve().parent / "config" / "crypto_ids.json
 
 
 def _get(path: str, params: dict) -> dict | list:
-    for attempt in range(3):
+    for attempt in range(4):
+        time.sleep(3)  # keep well under the free tier's per-minute limit
         r = requests.get(API + path, params=params, headers=UA, timeout=30)
         if r.status_code == 429:  # free tier rate limit
-            time.sleep(20 * (attempt + 1))
+            time.sleep(30 * (attempt + 1))
             continue
         r.raise_for_status()
         return r.json()
