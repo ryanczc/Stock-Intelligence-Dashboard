@@ -1,0 +1,3 @@
+{
+  "_note": "Pin a CoinGecko coin id when a ticker is ambiguous or Yahoo lists the wrong coin. Ids are the last part of the coin's CoinGecko URL, e.g. coingecko.com/en/coins/pendle -> pendle. Pinned symbols skip Yahoo."
+}

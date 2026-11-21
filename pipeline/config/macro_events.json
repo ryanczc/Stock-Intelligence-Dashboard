@@ -1,0 +1,15 @@
+{
+  "_note": "Edit this file to add or fix macro dates. FOMC = rate decision day (2 PM US Eastern, about 2-3 AM SGT the next day). CPI = US CPI release (8:30 AM US Eastern). Check CPI dates against https://www.bls.gov/schedule/news_release/cpi.htm",
+  "events": [
+    {"date": "2026-01-28", "type": "macro", "title": "FOMC rate decision"},
+    {"date": "2026-03-18", "type": "macro", "title": "FOMC rate decision (with projections)"},
+    {"date": "2026-04-29", "type": "macro", "title": "FOMC rate decision"},
+    {"date": "2026-06-17", "type": "macro", "title": "FOMC rate decision (with projections)"},
+    {"date": "2026-07-29", "type": "macro", "title": "FOMC rate decision"},
+    {"date": "2026-09-16", "type": "macro", "title": "FOMC rate decision (with projections)"},
+    {"date": "2026-10-28", "type": "macro", "title": "FOMC rate decision"},
+    {"date": "2026-12-09", "type": "macro", "title": "FOMC rate decision (with projections)"},
+    {"date": "2026-12-10", "type": "macro", "title": "US CPI (November)"},
+    {"date": "2027-01-13", "type": "macro", "title": "US CPI (December) - date to verify"}
+  ]
+}
