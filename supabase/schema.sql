@@ -6,6 +6,7 @@
 create extension if not exists pgcrypto;
 
 create table if not exists app_owner (email text primary key);
+alter table app_owner enable row level security;
 
 create or replace function is_owner() returns boolean
 language sql stable security definer set search_path = public as $$
@@ -28,12 +29,14 @@ create table if not exists transactions (
   import_ref text unique,                     -- broker order id / hash, stops double imports
   created_at timestamptz not null default now()
 );
+alter table app_owner enable row level security;
 create index if not exists transactions_symbol on transactions(symbol);
 
 create table if not exists watchlist (
   symbol text primary key,
   added_at timestamptz not null default now()
 );
+alter table watchlist enable row level security;
 
 -- Per-instrument settings: manual prices for cash/bonds, user 5y targets for crypto/ETFs, asset class overrides.
 create table if not exists instruments (
@@ -46,6 +49,7 @@ create table if not exists instruments (
   extra jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
+alter table instruments enable row level security;
 
 -- Valuation assumptions the user edited (per scenario), probabilities, comps, and the baseline at edit time.
 create table if not exists valuations (
@@ -53,12 +57,14 @@ create table if not exists valuations (
   data jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
+alter table valuations enable row level security;
 
 create table if not exists notes (
   symbol text primary key,
   thesis text not null default '',
   updated_at timestamptz not null default now()
 );
+alter table notes enable row level security;
 
 create table if not exists journal (
   id uuid primary key default gen_random_uuid(),
@@ -68,6 +74,7 @@ create table if not exists journal (
   body text not null,
   created_at timestamptz not null default now()
 );
+alter table journal enable row level security;
 create index if not exists journal_symbol on journal(symbol, entry_date desc);
 
 create table if not exists custom_events (
@@ -77,6 +84,7 @@ create table if not exists custom_events (
   type text not null default 'custom',
   title text not null
 );
+alter table custom_events enable row level security;
 
 -- Written by the data job.
 create table if not exists market_data (
@@ -84,12 +92,14 @@ create table if not exists market_data (
   data jsonb not null,
   updated_at timestamptz not null default now()
 );
+alter table market_data enable row level security;
 
 create table if not exists reference_data (
   key text primary key,
   data jsonb not null,
   updated_at timestamptz not null default now()
 );
+alter table reference_data enable row level security;
 
 create table if not exists alerts (
   id uuid primary key default gen_random_uuid(),
@@ -100,6 +110,7 @@ create table if not exists alerts (
   created_at timestamptz not null default now(),
   read boolean not null default false
 );
+alter table alerts enable row level security;
 
 -- Row level security: owner only.
 do $$
