@@ -18,7 +18,7 @@ and optionally Telegram.
 2. Authorised redirect URI: `https://<your-project>.supabase.co/auth/v1/callback`.
 3. Supabase > Authentication > Providers > Google: paste the client ID and secret, enable.
 4. Supabase > Authentication > URL Configuration: set Site URL to
-   `https://ryanczc.github.io/stock-intelligence-dashboard/` and add it to Redirect URLs.
+   `https://ryanczc.github.io/Stock-Intelligence-Dashboard/` and add it to Redirect URLs.
 
 ## 3. GitHub settings (this repository)
 
