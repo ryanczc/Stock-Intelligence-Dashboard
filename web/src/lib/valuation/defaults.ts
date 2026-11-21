@@ -112,7 +112,8 @@ export function buildDefaults(md: MarketData, refIn: ReferenceData | null | unde
     industryMargin: ind.values.operatingMargin,
   };
   const stableG = Math.min(rf, 0.04);
-  const shares = md.shares ?? (md.marketCap && md.price ? md.marketCap / md.price : NaN);
+  // market cap / price gives the share count in the listed line (correct for ADRs, e.g. 1 ADS = 3 shares)
+  const shares = md.marketCap && md.price ? md.marketCap / md.price : md.shares ?? NaN;
   if (!n(shares)) missing.push("shares outstanding");
   const dps0Trading = trailingDividends(md.dividends) ?? md.dividendRate ?? 0;
   const dps0 = dps0Trading / fxRepToTrading;
@@ -127,8 +128,8 @@ export function buildDefaults(md: MarketData, refIn: ReferenceData | null | unde
     const analyst = f.revenueGrowthNextYear ?? f.revenueGrowthThisYear;
     let growth: number;
     if (n(analyst) && n(hist)) {
-      growth = (analyst + hist) / 2;
-      sources.growthHigh = `avg of analyst next-year (${(analyst * 100).toFixed(1)}%) and 3y history (${(hist * 100).toFixed(1)}%)`;
+      growth = (2 * analyst + hist) / 3;
+      sources.growthHigh = `2/3 analyst next-year (${(analyst * 100).toFixed(1)}%), 1/3 3y history (${(hist * 100).toFixed(1)}%)`;
     } else if (n(analyst)) {
       growth = analyst;
       sources.growthHigh = "analyst next-year revenue growth";
@@ -139,9 +140,23 @@ export function buildDefaults(md: MarketData, refIn: ReferenceData | null | unde
       growth = f.revenueGrowthYoy ?? 0.05;
       sources.growthHigh = n(f.revenueGrowthYoy) ? "last reported YoY growth" : "placeholder 5%, please set";
     }
-    growth = clamp(growth, -0.05, 0.4);
-    const target = margin > 0 ? margin : ind.values.operatingMargin ?? 0.1;
-    sources.targetMargin = margin > 0 ? `current margin held (industry: ${ind.values.operatingMargin != null ? (ind.values.operatingMargin * 100).toFixed(1) + "%" : "n/a"})` : "industry average operating margin";
+    growth = clamp(growth, -0.05, 0.3);
+    if (growth === 0.3) sources.growthHigh += "; capped at 30%";
+    // Damodaran-style convergence: a business below its industry's margin moves halfway towards it;
+    // one already above keeps its own margin (its advantage is assumed to persist).
+    const indM = ind.values.operatingMargin;
+    const indTxt = indM != null ? (indM * 100).toFixed(1) + "%" : "n/a";
+    let target: number;
+    if (margin <= 0) {
+      target = indM ?? 0.1;
+      sources.targetMargin = `industry average operating margin (${indTxt})`;
+    } else if (indM != null && margin < indM) {
+      target = (margin + indM) / 2;
+      sources.targetMargin = `halfway from current to industry margin (${indTxt})`;
+    } else {
+      target = margin;
+      sources.targetMargin = `current margin held, above industry (${indTxt})`;
+    }
     const effTax = n(f.effectiveTaxRate) ? clamp(f.effectiveTaxRate, 0, taxMarginal + 0.05) : taxMarginal;
     sources.taxEffective = n(f.effectiveTaxRate) ? "TTM tax provision / pre-tax income" : "marginal rate";
     sources.taxMarginal = `statutory rate, ${country}`;

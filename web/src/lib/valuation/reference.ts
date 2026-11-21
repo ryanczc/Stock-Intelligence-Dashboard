@@ -72,6 +72,7 @@ const INDUSTRY_MAP: [RegExp, string][] = [
   [/oil & gas midstream/i, "Oil/Gas Distribution"],
   [/oil & gas equipment/i, "Oilfield Svcs/Equip."],
   [/utilities - regulated water/i, "Utility (Water)"],
+  [/independent power|renewable/i, "Power"],
   [/utilities/i, "Utility (General)"],
   [/aerospace/i, "Aerospace/Defense"],
   [/airlines/i, "Air Transport"],

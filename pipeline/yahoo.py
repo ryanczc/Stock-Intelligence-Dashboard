@@ -73,7 +73,7 @@ def _iso(d: Any) -> str | None:
 
 # --- asset classification -------------------------------------------------------------------------
 
-BANK_WORDS = ("bank", "credit services", "capital markets", "financial conglomerates")
+BANK_WORDS = ("bank", "credit services", "financial conglomerates")  # not "capital markets": brokers, miners etc. use FCFF
 INSURER_WORDS = ("insurance",)
 
 

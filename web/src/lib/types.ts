@@ -88,7 +88,7 @@ export interface MarketData {
   insiders?: { date: string; insider: string; position?: string; text?: string; shares?: number; value?: number }[];
   institutions?: { date: string; holder: string; pctHeld?: number; shares?: number; value?: number; pctChange?: number }[];
   news?: { title: string; publisher?: string; url?: string; time?: string }[];
-  crypto?: { circulatingSupply?: number | null; volume24h?: number | null; allTimeHigh?: number | null };
+  crypto?: { circulatingSupply?: number | null; volume24h?: number | null; allTimeHigh?: number | null; fullyDilutedValuation?: number | null; coingeckoId?: string };
   gaps?: string[];
 }
 

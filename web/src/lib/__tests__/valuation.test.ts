@@ -63,13 +63,13 @@ describe("excess return and REIT models", () => {
 });
 
 describe("full valuations on live snapshot", () => {
-  for (const s of ["AAPL", "MSFT", "NVDA", "D05.SI", "C38U.SI", "0700.HK"]) {
+  for (const s of ["NOW", "IREN", "VST", "CEG", "SOFI", "FPS", "ATAT", "AAPL", "D05.SI", "C38U.SI", "0700.HK"]) {
     it(`${s} produces a finite value, target and CAGR`, () => {
       const v = valueSymbol(md(s), snap.reference, snap.fx, undefined);
       expect(v?.kind).toBe("model");
       if (v?.kind !== "model") return;
       expect(Number.isFinite(v.weightedValue)).toBe(true);
-      expect(v.results.bear.valuePerShare).toBeLessThan(v.results.bull.valuePerShare);
+      expect(v.results.bear.valuePerShare).toBeLessThanOrEqual(v.results.bull.valuePerShare);
       expect(Number.isFinite(v.exit.priceTarget)).toBe(true);
       console.log(s, v.model, "price", v.price?.toFixed(2), "dcf", v.weightedValue.toFixed(2), "bear/base/bull",
         [v.results.bear, v.results.base, v.results.bull].map((r) => r.valuePerShare.toFixed(2)).join("/"),

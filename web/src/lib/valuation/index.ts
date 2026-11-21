@@ -98,6 +98,7 @@ export function exitTarget(
   price: number | null | undefined,
   fxRepToTrading: number,
   userMultiple?: number | null,
+  own?: number | null,
 ): ExitResult {
   const y5 = base.years[4];
   const key = EXIT_METRICS[metric].perShare;
@@ -108,6 +109,7 @@ export function exitTarget(
   const indVal = metric === "pe" ? ctx.industryMultiples.pe : metric === "evEbitda" ? ctx.industryMultiples.evEbitda : metric === "pb" ? ctx.industryMultiples.pb : undefined;
   const cap = metric === "evEbitda" ? 40 : metric === "pb" ? 15 : 80; // industry aggregates can be distorted by loss-makers
   if (indVal && indVal > 0 && indVal < cap) candidates.push({ source: `Industry: ${ctx.industry} (${ctx.industrySource})`, multiple: indVal });
+  if (own != null && own > 0 && own < 200) candidates.push({ source: "Company's current multiple", multiple: own });
   const justifiedNumerator = metric === "evEbitda" ? base.evAtYear5PerShare ?? NaN : base.valueAtYear5PerShare;
   const justified = m5 > 0 ? justifiedNumerator / m5 : NaN;
   if (Number.isFinite(justified) && justified > 0 && justified < 200) candidates.push({ source: "Growth-justified (DCF value at year 5)", multiple: justified });
@@ -221,7 +223,7 @@ export function valueSymbol(
   const weightedValue = SCENARIOS.reduce((sum, s) => sum + probabilities[s] * results[s].valuePerShare, 0);
   const metric = (settings?.exitMetric as ExitMetric) || defaultExitMetric(defaults.model, md.sector, md.industry);
   const allowed = allowedExitMetrics(defaults.model);
-  const exit = exitTarget(results.base, defaults.model, allowed.includes(metric) ? metric : allowed[0], defaults.context, comps, fx, price, baseInputs.fxReportingToTrading || 1, settings?.exitMultiple);
+  const exit = exitTarget(results.base, defaults.model, allowed.includes(metric) ? metric : allowed[0], defaults.context, comps, fx, price, baseInputs.fxReportingToTrading || 1, settings?.exitMultiple, compMultiple(md, allowed.includes(metric) ? metric : allowed[0], fx));
   return {
     kind: "model",
     defaults,

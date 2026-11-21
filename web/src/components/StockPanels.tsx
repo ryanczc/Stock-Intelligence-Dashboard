@@ -108,7 +108,7 @@ export function SimplePanel({ symbol, v, md }: { symbol: string; v: SimpleTarget
         <div className="card kpi"><div className="label">CAGR to target</div><div className={`value ${tone(v?.cagr)}`}>{pct(v?.cagr, 1, true)}</div><div className="sub muted">from {money(v?.price)}</div></div>
         {c ? (
           <>
-            <div className="card kpi"><div className="label">2-year high</div><div className="value">{money(c.allTimeHigh)}</div><div className="sub muted">{pct(md?.price && c.allTimeHigh ? md.price / c.allTimeHigh - 1 : null, 1, true)} from high</div></div>
+            <div className="card kpi"><div className="label">High (all-time or 2-year)</div><div className="value">{money(c.allTimeHigh)}</div><div className="sub muted">{pct(md?.price && c.allTimeHigh ? md.price / c.allTimeHigh - 1 : null, 1, true)} from high</div></div>
             <div className="card kpi"><div className="label">Market cap · 24h volume</div><div className="value">{compact(md?.marketCap)}</div><div className="sub muted">{compact(c.volume24h)} volume · {compact(c.circulatingSupply)} supply</div></div>
           </>
         ) : (

@@ -13,7 +13,7 @@ import sys
 import time
 
 from . import alerts as alerts_mod
-from . import damodaran, yahoo
+from . import coingecko, damodaran, yahoo
 
 ROOT = pathlib.Path(__file__).resolve().parent
 REFERENCE_MAX_AGE_DAYS = 7
@@ -62,7 +62,11 @@ def main(argv: list[str] | None = None) -> int:
     docs, failures = [], []
     for s in symbols:
         try:
-            doc = yahoo.fetch_symbol(s)
+            doc = yahoo.fetch_symbol(s) if s.upper() not in coingecko.pinned_ids() else None
+            if s.upper().endswith("-USD") and (doc is None or not doc.get("price")):
+                doc = coingecko.fetch_symbol(s) or doc
+            if doc is None or not doc.get("price"):
+                raise RuntimeError("no price from Yahoo or CoinGecko; check the symbol")
             docs.append(doc)
             print(summarize(doc))
         except Exception as e:  # noqa: BLE001

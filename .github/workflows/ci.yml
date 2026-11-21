@@ -36,4 +36,4 @@ jobs:
       - run: python -m pytest pipeline/tests -q
       - name: Live smoke test against Yahoo + Damodaran (informational)
         continue-on-error: true
-        run: python -m pipeline.run --dry-run --symbols NOW,IREN,VST,CEG,SOFI,FPS,ATAT,AAPL,MSFT,NVDA,D05.SI,C38U.SI,0700.HK,ES3.SI,BTC-USD,ETH-USD --reference --print-json
+        run: python -m pipeline.run --dry-run --symbols NOW,IREN,VST,CEG,SOFI,FPS,ATAT,GRAB,SE,MSTR,BMNR,PURR-USD,CARDS-USD,PENDLE-USD,SYRUP-USD,KNTQ-USD,AAPL,MSFT,NVDA,D05.SI,C38U.SI,0700.HK,ES3.SI,BTC-USD,ETH-USD --reference --print-json

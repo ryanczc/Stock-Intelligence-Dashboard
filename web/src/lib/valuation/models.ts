@@ -71,7 +71,9 @@ function finish(
   warnings: string[],
   evAt5?: number,
 ): ModelResult {
-  const perShareRep = shares > 0 ? equityValue / shares : NaN;
+  // Limited liability: shareholders can't be worth less than zero.
+  if (equityValue < 0) warnings.push("Equity value is below zero at these assumptions; shown as 0 per share.");
+  const perShareRep = shares > 0 ? Math.max(0, equityValue) / shares : NaN;
   return {
     model,
     valuePerShare: perShareRep * fx,
@@ -172,7 +174,6 @@ export function fcffModel(i: Inputs): ModelResult {
   const pFail = i.failureProbability || 0;
   if (pFail > 0) operating = operating * (1 - pFail) + operating * (i.distressProceeds ?? 0.5) * pFail;
   const equity = operating + (i.cash || 0) + (i.nonOperatingAssets || 0) - (i.debt || 0) - (i.minorityInterest || 0);
-  if (equity < 0) warnings.push("Debt exceeds operating asset value: equity value is negative.");
 
   // value of the firm at end of year 5 (for the growth-justified exit multiple)
   const df5 = years[4].discountFactor;
