@@ -106,6 +106,7 @@ def main(argv: list[str] | None = None) -> int:
     if store:
         store.save_market_data(docs)
         store.save_reference("fx", {"rates": fx, "updatedAt": dt.datetime.now(dt.timezone.utc).isoformat()})
+        store.save_reference("macro", {"events": load_config_events()})
         if ref and (ref.get("industries", {}).get("US") or ref.get("countries")):
             store.save_reference("damodaran", ref)
         for tx in store.transactions_missing_fx():

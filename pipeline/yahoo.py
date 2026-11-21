@@ -295,7 +295,8 @@ def _events(t, info: dict, gaps: list[str]) -> list[dict]:
     try:
         sp = t.splits
         if sp is not None and len(sp):
-            for d, r in sp.tail(3).items():
+            cutoff = pd.Timestamp.now(tz=sp.index.tz) - pd.Timedelta(days=365)
+            for d, r in sp[sp.index >= cutoff].items():
                 ev.append({"date": _iso(d), "type": "split", "title": f"Stock split {r:g}:1"})
     except Exception:  # noqa: BLE001
         pass

@@ -32,7 +32,7 @@ INDUSTRY_FILES: dict[str, dict[str, list[list[str]]]] = {
         "salesToCapital": [["sales/ invested capital"], ["sales/invested capital"], ["sales", "capital"]],
     },
     "pe": {
-        "pe": [["current pe"], ["trailing pe"]],
+        "pe": [["only money making"], ["current pe"], ["trailing pe"]],
         "forwardPe": [["forward pe"]],
         "expectedGrowth": [["expected growth"]],
     },
@@ -45,14 +45,24 @@ INDUSTRY_FILES: dict[str, dict[str, list[list[str]]]] = {
 REGION_SUFFIX = {"US": "", "Global": "Global"}
 
 
+# Damodaran's file names are not fully regular between the US and Global versions.
+ALIASES = {
+    "pe": ["pedata", "pe"],
+    "peGlobal": ["peGlobal", "pedataGlobal"],
+    "betasGlobal": ["betaGlobal", "betasGlobal", "totalbetaGlobal"],
+    "pbvdataGlobal": ["pbvGlobal", "pbvdataGlobal"],
+}
+
+
 def _fetch(name: str) -> bytes | None:
-    for ext in (".xls", ".xlsx"):
-        try:
-            r = requests.get(BASE + name + ext, headers=UA, timeout=60)
-            if r.status_code == 200 and len(r.content) > 1000:
-                return r.content
-        except requests.RequestException:
-            continue
+    for candidate in ALIASES.get(name, [name]):
+        for ext in (".xls", ".xlsx"):
+            try:
+                r = requests.get(BASE + candidate + ext, headers=UA, timeout=60)
+                if r.status_code == 200 and len(r.content) > 1000 and not r.content.lstrip().startswith(b"<"):
+                    return r.content
+            except requests.RequestException:
+                continue
     return None
 
 
