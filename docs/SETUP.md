@@ -10,7 +10,10 @@ and optionally Telegram.
 3. In the same editor run, with your Google address:
    `insert into app_owner(email) values ('you@gmail.com');`
    Only this email can read or write any data.
-4. Project Settings > API: note the **Project URL**, the **anon public** key and the **service_role** key.
+4. Project Settings > API Keys: note the **Project URL** and two keys. Either key style works:
+   - new style: the **publishable** key (`sb_publishable_...`) and a **secret** key (`sb_secret_...`), or
+   - legacy tab: the **anon public** key and the **service_role** key (Supabase retires these in 2027).
+   Use the publishable/anon key as `SUPABASE_ANON_KEY` and the secret/service_role key as `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## 2. Google sign-in
 

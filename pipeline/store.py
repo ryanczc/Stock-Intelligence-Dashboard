@@ -11,7 +11,11 @@ class Store:
     def __init__(self, url: str | None = None, key: str | None = None):
         self.url = (url or os.environ["SUPABASE_URL"]).rstrip("/") + "/rest/v1"
         key = key or os.environ["SUPABASE_SERVICE_ROLE_KEY"]
-        self.h = {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+        # Legacy service_role keys are JWTs and go in both headers. New-style secret keys
+        # (sb_secret_...) are not JWTs and must only be sent as `apikey`.
+        self.h = {"apikey": key, "Content-Type": "application/json"}
+        if not key.startswith("sb_"):
+            self.h["Authorization"] = f"Bearer {key}"
 
     def _get(self, table: str, params: dict[str, str]) -> list[dict]:
         r = requests.get(f"{self.url}/{table}", headers=self.h, params=params, timeout=30)
