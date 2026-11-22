@@ -1,10 +1,34 @@
 """Tiny Supabase (PostgREST) client for the data job. Uses the service-role key from GitHub Actions secrets."""
 from __future__ import annotations
 
+import base64
+import json
 import os
 from typing import Any
 
 import requests
+
+
+def key_problem(key: str) -> str | None:
+    """Return a plain-English problem if this is not a server (secret / service_role) key."""
+    if key.startswith("sb_publishable_"):
+        return "SUPABASE_SERVICE_ROLE_KEY holds the publishable key. Use the secret key (sb_secret_...) instead."
+    if key.startswith("sb_"):
+        return None
+    try:
+        payload = key.split(".")[1]
+        role = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4))).get("role")
+    except Exception:  # noqa: BLE001
+        return "SUPABASE_SERVICE_ROLE_KEY doesn't look like a Supabase key. Copy the secret or service_role key again."
+    if role != "service_role":
+        return f"SUPABASE_SERVICE_ROLE_KEY holds the '{role}' key. Use the service_role key instead."
+    return None
+
+
+def check(r: requests.Response) -> None:
+    """raise_for_status, but include Supabase's explanation so the Actions log says what went wrong."""
+    if r.status_code >= 400:
+        raise RuntimeError(f"Supabase {r.status_code} on {r.request.method} {r.url.split('/rest/v1')[-1]}: {r.text[:500]}")
 
 
 class Store:
@@ -14,13 +38,15 @@ class Store:
         key = (key or os.environ["SUPABASE_SERVICE_ROLE_KEY"]).strip()
         # Legacy service_role keys are JWTs and go in both headers. New-style secret keys
         # (sb_secret_...) are not JWTs and must only be sent as `apikey`.
+        if problem := key_problem(key):
+            raise SystemExit(problem)
         self.h = {"apikey": key, "Content-Type": "application/json"}
         if not key.startswith("sb_"):
             self.h["Authorization"] = f"Bearer {key}"
 
     def _get(self, table: str, params: dict[str, str]) -> list[dict]:
         r = requests.get(f"{self.url}/{table}", headers=self.h, params=params, timeout=30)
-        r.raise_for_status()
+        check(r)
         return r.json()
 
     def _upsert(self, table: str, rows: list[dict], on_conflict: str, ignore_duplicates=False) -> list[dict]:
@@ -29,7 +55,7 @@ class Store:
         prefer = "resolution=ignore-duplicates" if ignore_duplicates else "resolution=merge-duplicates"
         h = {**self.h, "Prefer": prefer + ",return=representation"}
         r = requests.post(f"{self.url}/{table}", headers=h, params={"on_conflict": on_conflict}, json=rows, timeout=60)
-        r.raise_for_status()
+        check(r)
         return r.json() if r.text else []
 
     # --- reads ---
@@ -71,7 +97,7 @@ class Store:
 
     def set_fx(self, tx_id: str, fx: float) -> None:
         r = requests.patch(f"{self.url}/transactions", headers=self.h, params={"id": f"eq.{tx_id}"}, json={"fx_to_sgd": fx}, timeout=30)
-        r.raise_for_status()
+        check(r)
 
     def insert_alerts(self, alerts: list[dict]) -> list[dict]:
         """Insert alerts, skipping ones already sent (dedupe_key). Returns only the new ones."""

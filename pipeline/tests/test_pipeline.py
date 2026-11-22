@@ -85,3 +85,17 @@ def test_parse_country_premiums():
     c = damodaran.parse_country_premiums(_xlsx({"ERPs by country": raw}))
     assert c["United States"]["erp"] == 0.0433
     assert c["China"]["crp"] == 0.0077
+
+
+def test_key_problem():
+    import base64, json
+    from pipeline.store import key_problem
+
+    def jwt(role):
+        body = base64.urlsafe_b64encode(json.dumps({"role": role}).encode()).decode().rstrip("=")
+        return f"eyJhbGciOiJIUzI1NiJ9.{body}.sig"
+
+    assert key_problem(jwt("service_role")) is None
+    assert "anon" in key_problem(jwt("anon"))
+    assert key_problem("sb_secret_abc") is None
+    assert "publishable" in key_problem("sb_publishable_abc")

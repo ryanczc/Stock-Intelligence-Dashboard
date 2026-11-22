@@ -128,5 +128,12 @@ begin
   end loop;
 end $$;
 
+-- Table access for Supabase's API roles. Newer Supabase projects no longer grant this automatically,
+-- which shows up as "403 Forbidden" / "permission denied for table". Row level security above still
+-- limits the signed-in website user to the app_owner email.
+grant usage on schema public to anon, authenticated, service_role;
+grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
+grant execute on function is_owner() to anon, authenticated, service_role;
+
 -- >>> Replace with the Google account you will sign in with, then run this line:
 -- insert into app_owner(email) values ('you@gmail.com');
