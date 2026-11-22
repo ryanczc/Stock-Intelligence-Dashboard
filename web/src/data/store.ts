@@ -141,8 +141,9 @@ export class LocalStore implements DataStore {
 // ---------------------------------------------------------------------------------------------
 // Supabase store
 
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+export const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim() || undefined;
+// Trim: values pasted into GitHub settings often carry a trailing newline, which breaks HTTP headers.
+const SUPABASE_ANON = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim() || undefined;
 export const supabase: SupabaseClient | null = SUPABASE_URL && SUPABASE_ANON ? createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 
 function check<T>(r: { data: T; error: { message: string } | null }): T {

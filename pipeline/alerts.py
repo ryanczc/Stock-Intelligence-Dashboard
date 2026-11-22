@@ -91,7 +91,7 @@ def macro_alerts(events: list[dict], today: dt.date) -> list[dict]:
 
 
 def send_telegram(alerts: list[dict], log=print) -> None:
-    token, chat = os.environ.get("TELEGRAM_BOT_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
+    token, chat = (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip(), (os.environ.get("TELEGRAM_CHAT_ID") or "").strip()
     if not token or not chat or not alerts:
         return
     icons = {"price_move": "📈", "earnings": "📅", "dividend": "💵", "insider": "🕵️", "fund": "🏦", "macro": "🌐", "split": "✂️"}

@@ -9,8 +9,9 @@ import requests
 
 class Store:
     def __init__(self, url: str | None = None, key: str | None = None):
-        self.url = (url or os.environ["SUPABASE_URL"]).rstrip("/") + "/rest/v1"
-        key = key or os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+        # .strip(): secrets pasted into GitHub often carry a trailing newline, which requests rejects in headers.
+        self.url = (url or os.environ["SUPABASE_URL"]).strip().rstrip("/") + "/rest/v1"
+        key = (key or os.environ["SUPABASE_SERVICE_ROLE_KEY"]).strip()
         # Legacy service_role keys are JWTs and go in both headers. New-style secret keys
         # (sb_secret_...) are not JWTs and must only be sent as `apikey`.
         self.h = {"apikey": key, "Content-Type": "application/json"}
