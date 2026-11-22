@@ -1,0 +1,22 @@
+{
+  "symbol": "BMNR",
+  "asOf": "2026-11-22",
+  "summary": "BitMine is an ether treasury company: value is mostly its ETH (plus cash) minus liabilities. A revenue DCF doesn't capture this. Value it as ETH holdings x ETH price plus cash, divided by shares; then compare to the share price (mNAV).",
+  "noDcf": true,
+  "thesis": {
+    "text": "BitMine is an ether treasury company: value is mostly its ETH (plus cash) minus liabilities. A revenue DCF doesn't capture this. Value it as ETH holdings x ETH price plus cash, divided by shares; then compare to the share price (mNAV).",
+    "bull": [],
+    "bear": [],
+    "watch": [
+      "Holdings per share vs share price (mNAV)",
+      "Debt and preferred stock issued"
+    ]
+  },
+  "sources": [],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

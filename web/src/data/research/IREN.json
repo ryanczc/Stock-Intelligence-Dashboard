@@ -1,0 +1,67 @@
+{
+  "symbol": "IREN",
+  "asOf": "2026-11-22",
+  "summary": "Ex-bitcoin miner pivoting to AI cloud (GPU rental). Q1 FY27 revenue $228M, ~$1B operating ARR, $20B backlog, >$4B ARR target slipped to early 2027, ~$20B capex plan funded with debt. Very high growth but very capital-hungry and execution-risky. Note: even with these assumptions the DCF comes out well below the price, because the debt already taken on is large relative to today's revenue. The price is a bet on the ramp; use the bull case and the 5-year target to judge it.",
+  "industry": "Computer Services",
+  "base": {
+    "growthHigh": 0.55,
+    "targetMargin": 0.28,
+    "marginConvergenceYear": 4,
+    "salesToCapital": 1.0,
+    "waccInitial": 0.12,
+    "failureProbability": 0.1,
+    "distressProceeds": 0.4
+  },
+  "bear": {
+    "growthHigh": 0.35,
+    "targetMargin": 0.2,
+    "failureProbability": 0.2
+  },
+  "bull": {
+    "growthHigh": 0.65,
+    "targetMargin": 0.33
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 18,
+  "rationale": {
+    "growthHigh": "From under $1B trailing revenue to the $4B+ ARR target in early 2027, then slower growth on a $20B backlog: ~55% a year averages out the front-loaded ramp.",
+    "targetMargin": "GPU cloud operating margin after heavy depreciation; peers (CoreWeave) run ~20-30%.",
+    "marginConvergenceYear": "Margin reaches steady state once contracted clusters are running (about year 4).",
+    "salesToCapital": "Headline capex is ~$20B, but much of the current build is already financed by the ~$10B of debt on the balance sheet, so each new $1 of capital supports ~$1 of extra revenue.",
+    "failureProbability": "10%: large debt-funded build-out, customer concentration and GPU obsolescence risk.",
+    "distressProceeds": "Data centres and power sites keep some value in a distress sale.",
+    "exitMultiple": "18x: capital-intensive infrastructure earnings deserve a lower multiple than software.",
+    "waccInitial": "~12%: high-beta stock (~2) on a 4.5% equity risk premium, blended with ~8% secured GPU financing. The automatic figure is higher because trailing losses give a poor synthetic credit rating."
+  },
+  "thesis": {
+    "text": "IREN is turning cheap renewable-powered data-centre sites into an AI cloud. The contracted backlog ($20B) is real, but the business must finance ~$20B of GPUs and deliver on time; the equity is a leveraged bet on that ramp.",
+    "bull": [
+      "$20.3B revenue backlog and ~$1B operating ARR, targeting >$4B in early 2027",
+      "Owns powered land (Childress, Sweetwater) that is scarce",
+      "Large hyperscaler customers"
+    ],
+    "bear": [
+      "Heavy debt and dilution to fund GPU purchases",
+      "The $4B ARR target already slipped once",
+      "GPU obsolescence and customer concentration",
+      "Still loss-making on a GAAP basis"
+    ],
+    "watch": [
+      "ARR vs >$4B target by Jan-Feb 2027",
+      "Financing terms for the remaining capex",
+      "Quarterly GAAP losses narrowing"
+    ]
+  },
+  "sources": [
+    {
+      "title": "IREN Q1 FY27 coverage",
+      "url": "https://finviz.com/news/418178/irens-ai-cloud-revenue-nearly-triples-but-a-wider-than-expected-loss-a-slipped-arr-target-and-a-financing-driven-capex-cut-set-the-tone"
+    }
+  ],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

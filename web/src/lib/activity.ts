@@ -7,6 +7,22 @@ export interface CalendarItem extends MarketEvent {
   source: "market" | "macro" | "custom";
 }
 
+/** Every known event (past and future) for the given symbols, plus macro and your own events, sorted by date. */
+export function allEvents(symbols: string[], market: Record<string, MarketData>, macro: MarketEvent[], custom: MarketEvent[]): CalendarItem[] {
+  const out: CalendarItem[] = [];
+  const seen = new Set<string>();
+  const add = (e: MarketEvent, source: CalendarItem["source"], symbol?: string) => {
+    const key = `${e.date}|${symbol ?? e.symbol ?? ""}|${e.title}`;
+    if (!e.date || seen.has(key)) return;
+    seen.add(key);
+    out.push({ ...e, symbol: symbol ?? e.symbol, days: daysUntil(e.date), source });
+  };
+  for (const s of symbols) for (const e of market[s]?.events ?? []) add(e, "market", s);
+  for (const e of macro) add(e, "macro");
+  for (const e of custom) add(e, "custom");
+  return out.sort((a, b) => a.date.localeCompare(b.date));
+}
+
 export function upcomingEvents(symbols: string[], market: Record<string, MarketData>, macro: MarketEvent[], custom: MarketEvent[], horizonDays = 45): CalendarItem[] {
   const out: CalendarItem[] = [];
   for (const s of symbols) for (const e of market[s]?.events ?? []) out.push({ ...e, symbol: s, days: daysUntil(e.date), source: "market" });

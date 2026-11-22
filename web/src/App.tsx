@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Holdings from "./pages/Holdings";
 import Watchlist from "./pages/Watchlist";
 import StockPage from "./pages/StockPage";
+import Calendar from "./pages/Calendar";
 import Trades from "./pages/Trades";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
@@ -23,6 +24,7 @@ export default function App() {
           <NavLink to="/" end>Dashboard</NavLink>
           <NavLink to="/holdings">Holdings</NavLink>
           <NavLink to="/watchlist">Watchlist</NavLink>
+          <NavLink to="/calendar">Calendar</NavLink>
           <NavLink to="/trades">Trades</NavLink>
           <NavLink to="/settings">Settings</NavLink>
         </nav>
@@ -45,6 +47,7 @@ export default function App() {
             <Route path="/holdings" element={<Holdings />} />
             <Route path="/watchlist" element={<Watchlist />} />
             <Route path="/s/:symbol" element={<StockPage />} />
+            <Route path="/calendar" element={<Calendar />} />
             <Route path="/trades" element={<Trades />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>

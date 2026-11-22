@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { claudeCase, valueSymbol, type Valuation } from "../valuation";
+import { CLAUDE_CASES, claudeCase, valueSymbol, type Valuation } from "../valuation";
 import { FIELDS } from "../valuation/fields";
-import raw from "../../data/claudeBaseCase.json";
 import type { MarketData, ReferenceData } from "../types";
 
 const snap = JSON.parse(readFileSync(new URL("../../../public/demo/snapshot.json", import.meta.url), "utf8")) as {
@@ -11,9 +10,19 @@ const snap = JSON.parse(readFileSync(new URL("../../../public/demo/snapshot.json
   reference: ReferenceData;
 };
 const md = (s: string) => snap.market.find((m) => m.symbol === s);
-const symbols = Object.keys((raw as { symbols: Record<string, unknown> }).symbols);
+const symbols = Object.keys(CLAUDE_CASES);
 
 describe("Claude base case", () => {
+  it("loads one research file per ticker with a thesis and change log", () => {
+    expect(symbols.length).toBeGreaterThanOrEqual(10);
+    for (const s of symbols) {
+      const c = claudeCase(s)!;
+      expect(c.asOf, s).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(c.thesis?.text, s).toBeTruthy();
+      expect(c.changes?.length, s).toBeGreaterThan(0);
+    }
+  });
+
   it("only uses input names the models know", () => {
     const known = new Set(Object.values(FIELDS).flat().map((f) => f.key));
     for (const s of symbols) {

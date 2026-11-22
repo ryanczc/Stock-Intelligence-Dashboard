@@ -1,0 +1,53 @@
+{
+  "symbol": "VST",
+  "asOf": "2026-11-22",
+  "summary": "Largest US competitive power producer (gas + nuclear) with retail arm; benefits from data-centre power demand and nuclear PPAs; strong buybacks.",
+  "base": {
+    "growthHigh": 0.07,
+    "targetMargin": 0.24,
+    "marginConvergenceYear": 3,
+    "salesToCapital": 1.0,
+    "failureProbability": 0
+  },
+  "bear": {
+    "growthHigh": 0.03,
+    "targetMargin": 0.18
+  },
+  "bull": {
+    "growthHigh": 0.11,
+    "targetMargin": 0.28
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 18,
+  "rationale": {
+    "growthHigh": "Power prices and data-centre contracts lift revenue ~7% a year; generation is a mature business.",
+    "targetMargin": "Recent operating margin ~20-23% with hedged gross margin rising; 24% assumes long-term contracts at higher prices.",
+    "salesToCapital": "Power plants are capital-heavy; ~$1 of new revenue per $1 invested.",
+    "exitMultiple": "18x year-5 earnings: a premium to old utilities (~15x) for contracted data-centre growth."
+  },
+  "thesis": {
+    "text": "Vistra owns a large gas and nuclear fleet in Texas and the US East with a retail business that stabilises margins. Data-centre demand and nuclear contracts are re-rating power assets; buybacks shrink the share count.",
+    "bull": [
+      "Nuclear PPAs with hyperscalers at premium prices",
+      "Rising power demand in ERCOT/PJM lifts gas plant margins",
+      "Aggressive buybacks"
+    ],
+    "bear": [
+      "Power prices and spark spreads are cyclical",
+      "Policy and grid-interconnection rules for co-located data centres",
+      "Gas plant emissions and weather events"
+    ],
+    "watch": [
+      "New data-centre contract announcements",
+      "Hedged margin guidance for 2027-2028",
+      "PJM capacity auction results"
+    ]
+  },
+  "sources": [],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "symbol": "CEG",
+  "asOf": "2026-11-22",
+  "summary": "Largest US nuclear fleet, plus Calpine gas fleet (acquired 2026). Long-term nuclear PPAs with hyperscalers (Microsoft, Meta) give visible, inflation-linked earnings growth.",
+  "base": {
+    "growthHigh": 0.09,
+    "targetMargin": 0.22,
+    "marginConvergenceYear": 3,
+    "salesToCapital": 1.0,
+    "failureProbability": 0
+  },
+  "bear": {
+    "growthHigh": 0.04,
+    "targetMargin": 0.17
+  },
+  "bull": {
+    "growthHigh": 0.13,
+    "targetMargin": 0.26
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 20,
+  "rationale": {
+    "growthHigh": "Calpine adds scale; nuclear contract re-pricing plus uprates give ~9% revenue growth.",
+    "targetMargin": "Nuclear is high-margin, gas and retail lower; blended ~22%.",
+    "salesToCapital": "Capital-heavy generation fleet.",
+    "exitMultiple": "20x: scarce carbon-free baseload with 20-year contracts trades at a premium to other power producers."
+  },
+  "thesis": {
+    "text": "Constellation is the largest US owner of nuclear plants, now also a major gas generator after buying Calpine. Long-term contracts with Microsoft and Meta show hyperscalers will pay a premium for carbon-free 24/7 power.",
+    "bull": [
+      "Scarce carbon-free baseload; 20-year PPAs at premium prices",
+      "Calpine adds gas flexibility and Texas exposure",
+      "Nuclear tax credit gives a price floor"
+    ],
+    "bear": [
+      "Integration of Calpine and higher debt",
+      "Regulatory pushback on co-located data-centre deals",
+      "Single-site outage risk"
+    ],
+    "watch": [
+      "Further hyperscaler PPAs",
+      "Calpine synergy delivery",
+      "Nuclear uprate and restart timelines (Crane)"
+    ]
+  },
+  "sources": [],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

@@ -49,7 +49,7 @@ python -m pytest pipeline/tests
 
 ## Claude base case
 
-`web/src/data/claudeBaseCase.json` holds researched default assumptions per ticker (growth, margins, reinvestment,
+`web/src/data/research/<SYMBOL>.json` holds researched default assumptions, a thesis and a change log per ticker (growth, margins, reinvestment,
 risk, exit multiple), each with a one-line reason and a date. On a stock's page they replace the automatic
 data defaults; anything you type in "Your value" overrides them, and clearing the box goes back to them.
-To refresh or add a ticker, ask Claude to update that file and open a pull request; merging it redeploys the site.
+A weekly Claude routine refreshes these files and opens a pull request (see `research/ROUTINE.md`); merging it redeploys the site.

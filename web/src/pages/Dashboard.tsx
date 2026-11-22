@@ -4,6 +4,7 @@ import { Kpi } from "../components/common";
 import { allocation } from "../lib/portfolio";
 import { activityFeed, headlines, upcomingEvents } from "../lib/activity";
 import { ago, compact, money, pct } from "../lib/format";
+import { claudeCase, recentClaudeChanges } from "../lib/valuation";
 
 const LABELS: Record<string, string> = { stock: "Stocks", bank: "Banks", insurer: "Insurers", reit: "REITs", etf: "ETFs", crypto: "Crypto", bond: "Bonds", cash: "Cash" };
 
@@ -31,6 +32,8 @@ export default function Dashboard() {
   const activity = activityFeed(symbols, d.market);
   const news = headlines(symbols, d.market, 12);
   const unread = d.alerts.filter((a) => !a.read);
+  const claudeChanges = recentClaudeChanges(symbols, 10);
+  const notResearched = symbols.filter((s) => !claudeCase(s) && d.market[s]?.assetClass !== "crypto" && d.market[s]?.assetClass !== "cash");
   const lastUpdate = Object.values(d.market).map((m) => m.updatedAt).sort().pop();
 
   if (!holdings.length && !d.watchlist.length)
@@ -71,9 +74,32 @@ export default function Dashboard() {
         </div>
       )}
 
+      <div className="card">
+        <div className="row between">
+          <h2>From Claude's weekly research</h2>
+          <Link to="/calendar" className="small">Open calendar →</Link>
+        </div>
+        {!claudeChanges.length ? (
+          <div className="empty">No Claude research yet for your stocks.</div>
+        ) : (
+          <ul className="list">
+            {claudeChanges.map((c, i) => (
+              <li key={i}>
+                <span className="when">{c.date.slice(5)}</span>
+                <span style={{ flex: 1 }}><Link to={`/s/${encodeURIComponent(c.symbol)}`}><b>{c.symbol}</b></Link> <span className="small">{c.text}</span></span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {notResearched.length > 0 && <p className="small muted">Not researched yet (added at the next Sunday run): {notResearched.join(", ")}</p>}
+      </div>
+
       <div className="grid two">
         <div className="card">
-          <h2>Upcoming events · next 45 days</h2>
+          <div className="row between">
+            <h2>Upcoming events · next 45 days</h2>
+            <Link to="/calendar" className="small">Calendar →</Link>
+          </div>
           {!events.length ? (
             <div className="empty">No scheduled events found.</div>
           ) : (

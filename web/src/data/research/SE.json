@@ -1,0 +1,52 @@
+{
+  "symbol": "SE",
+  "asOf": "2026-11-22",
+  "summary": "Sea Ltd: Shopee (SE Asia + Brazil e-commerce), Monee (digital finance) and Garena (games). Revenue growing ~25-35%, profitable with margins expanding.",
+  "base": {
+    "growthHigh": 0.18,
+    "targetMargin": 0.15,
+    "marginConvergenceYear": 5,
+    "salesToCapital": 2.2,
+    "failureProbability": 0
+  },
+  "bear": {
+    "growthHigh": 0.1,
+    "targetMargin": 0.1
+  },
+  "bull": {
+    "growthHigh": 0.24,
+    "targetMargin": 0.19
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 25,
+  "rationale": {
+    "growthHigh": "Shopee GMV and ads plus Monee lending growth; ~18% average as growth slows from today's pace.",
+    "targetMargin": "MercadoLibre earns ~12-15% operating margin; Sea gets there as Shopee ads take-rate rises.",
+    "exitMultiple": "25x: double-digit grower with e-commerce and fintech, in line with MercadoLibre-type names."
+  },
+  "thesis": {
+    "text": "Sea owns Shopee (e-commerce in SEA and Brazil), Monee (digital lending/payments) and Garena (Free Fire). Shopee is now profitable and taking share; Monee is a fast-growing, high-return lender.",
+    "bull": [
+      "Shopee ad and commission take-rates rising",
+      "Monee loan book growing quickly with low losses",
+      "Garena throws off cash"
+    ],
+    "bear": [
+      "E-commerce competition from TikTok Shop and Temu",
+      "Credit risk in Monee",
+      "Garena depends on one game"
+    ],
+    "watch": [
+      "Shopee adjusted EBITDA",
+      "Monee loan growth and NPLs",
+      "Free Fire bookings"
+    ]
+  },
+  "sources": [],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}
