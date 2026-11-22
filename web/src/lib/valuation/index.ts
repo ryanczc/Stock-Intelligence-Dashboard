@@ -3,9 +3,11 @@
 import type { Instrument, MarketData, ReferenceData, ScenarioName, ValuationSettings } from "../types";
 import { buildDefaults, clamp, type Defaults, type FxTable, fxRate } from "./defaults";
 import { runModel, type Inputs, type ModelId, type ModelResult } from "./models";
+import type { ClaudeCase } from "./claude";
 
 export * from "./models";
 export * from "./defaults";
+export * from "./claude";
 
 export const SCENARIOS: ScenarioName[] = ["bear", "base", "bull"];
 export const DEFAULT_PROBABILITIES: Record<ScenarioName, number> = { bear: 0.25, base: 0.5, bull: 0.25 };
@@ -28,12 +30,12 @@ export function scenarioDefaults(model: ModelId, base: Inputs, s: ScenarioName):
 }
 
 export type ExitMetric = "pe" | "pfcf" | "evEbitda" | "pb" | "pffo";
-export const EXIT_METRICS: Record<ExitMetric, { label: string; perShare: string }> = {
-  pe: { label: "P/E", perShare: "eps" },
-  pfcf: { label: "P/FCF", perShare: "fcfePerShare" },
-  evEbitda: { label: "EV/EBITDA", perShare: "ebitdaPerShare" },
-  pb: { label: "P/B", perShare: "bvps" },
-  pffo: { label: "P/FFO", perShare: "ffoPerShare" },
+export const EXIT_METRICS: Record<ExitMetric, { label: string; perShare: string; metricLabel: string }> = {
+  pe: { label: "P/E", perShare: "eps", metricLabel: "EPS" },
+  pfcf: { label: "P/FCF", perShare: "fcfePerShare", metricLabel: "FCF per share" },
+  evEbitda: { label: "EV/EBITDA", perShare: "ebitdaPerShare", metricLabel: "EBITDA per share" },
+  pb: { label: "P/B", perShare: "bvps", metricLabel: "book value per share" },
+  pffo: { label: "P/FFO", perShare: "ffoPerShare", metricLabel: "FFO per unit" },
 };
 
 export function defaultExitMetric(model: ModelId, sector?: string | null, industry?: string | null): ExitMetric {
@@ -80,6 +82,7 @@ export interface ExitCandidate {
 export interface ExitResult {
   metric: ExitMetric;
   metricValueYear5: number; // per share, reporting currency
+  netIncomeYear5: number | null; // total, reporting currency (base case)
   candidates: ExitCandidate[];
   multiple: number;
   multipleSource: string;
@@ -99,6 +102,7 @@ export function exitTarget(
   fxRepToTrading: number,
   userMultiple?: number | null,
   own?: number | null,
+  userMultipleLabel = "Your multiple",
 ): ExitResult {
   const y5 = base.years[4];
   const key = EXIT_METRICS[metric].perShare;
@@ -118,7 +122,7 @@ export function exitTarget(
   let multipleSource: string;
   if (userMultiple && userMultiple > 0) {
     multiple = userMultiple;
-    multipleSource = "Your multiple";
+    multipleSource = userMultipleLabel;
   } else if (candidates.length) {
     multiple = median(candidates.map((c) => c.multiple));
     multipleSource = candidates.length > 1 ? "Median of the candidates" : candidates[0].source;
@@ -129,7 +133,7 @@ export function exitTarget(
   const ptRep = metric === "evEbitda" ? m5 * multiple - base.netDebtPerShare : m5 * multiple;
   const priceTarget = ptRep * fxRepToTrading;
   const dividends5y = base.years.slice(0, 5).reduce((s, y) => s + (y.dps || 0), 0) * fxRepToTrading;
-  return { metric, metricValueYear5: m5, candidates, multiple, multipleSource, priceTarget, dividends5y, cagr: cagr(price, priceTarget, dividends5y) };
+  return { metric, metricValueYear5: m5, netIncomeYear5: null, candidates, multiple, multipleSource, priceTarget, dividends5y, cagr: cagr(price, priceTarget, dividends5y) };
 }
 
 /** Total-return CAGR over 5 years, counting dividends received (not reinvested). */
@@ -156,6 +160,10 @@ export interface Valuation {
   drift: DriftFlag[];
   price: number | null;
   upside: number | null;
+  /** Researched defaults applied between the data defaults and the user's edits, if any. */
+  claude: ClaudeCase | null;
+  /** The automatic data-driven defaults, before the Claude base case. */
+  dataInputs: Inputs;
 }
 
 export interface SimpleTarget {
@@ -163,6 +171,7 @@ export interface SimpleTarget {
   targetPrice5y: number | null;
   cagr: number | null;
   price: number | null;
+  claude?: ClaudeCase | null;
 }
 
 export function applyOverrides(inputs: Inputs, ov: Record<string, number | string> | undefined): Inputs {
@@ -203,27 +212,54 @@ export function valueSymbol(
   settings: ValuationSettings | undefined,
   comps: MarketData[] = [],
   instrument?: Instrument,
+  claude?: ClaudeCase | null,
 ): Valuation | SimpleTarget | null {
   if (!md) return null;
   const price = md.price ?? instrument?.manual_price ?? null;
-  const defaults = buildDefaults(md, ref, fx, { industry: settings?.industry, model: settings?.model as ModelId | undefined });
-  if (!defaults) {
+  const cc = claude && !claude.noDcf ? claude : null;
+  const forcedModel = (settings?.model || cc?.model) as ModelId | undefined;
+  const defaults = buildDefaults(md, ref, fx, { industry: settings?.industry || cc?.industry, model: forcedModel });
+  if (!defaults || (claude?.noDcf && !settings?.model)) {
     const t = instrument?.extra?.targetPrice5y ?? null;
     const divs = (md.dividendRate ?? 0) * 5;
-    return { kind: "target", targetPrice5y: t, cagr: t ? cagr(price, t, divs) : null, price };
+    return { kind: "target", targetPrice5y: t, cagr: t ? cagr(price, t, divs) : null, price, claude: claude ?? null };
   }
-  const probabilities = normaliseProbabilities(settings?.probabilities ?? DEFAULT_PROBABILITIES);
+  // Layer the Claude base case on top of the data defaults; the result is what the page calls "default".
+  const dataInputs = defaults.inputs;
+  if (cc?.base) {
+    defaults.inputs = applyOverrides(dataInputs, cc.base);
+    for (const k of Object.keys(cc.base)) {
+      if (!(k in dataInputs)) continue;
+      defaults.sources[k] = `Claude base case ${cc.asOf}: ${cc.rationale?.[k] ?? "researched estimate"}`;
+    }
+  }
+  const probabilities = normaliseProbabilities(settings?.probabilities ?? cc?.probabilities ?? DEFAULT_PROBABILITIES);
   const baseInputs = applyOverrides(defaults.inputs, settings?.overrides?.base as Record<string, number>);
   const inputs = {} as Record<ScenarioName, Inputs>;
   const results = {} as Record<ScenarioName, ModelResult>;
   for (const s of SCENARIOS) {
-    inputs[s] = s === "base" ? baseInputs : applyOverrides({ ...baseInputs, ...scenarioDefaults(defaults.model, baseInputs, s) } as Inputs, settings?.overrides?.[s] as Record<string, number>);
+    if (s === "base") inputs[s] = baseInputs;
+    else {
+      const scn = applyOverrides({ ...baseInputs, ...scenarioDefaults(defaults.model, baseInputs, s) } as Inputs, cc?.[s]);
+      inputs[s] = applyOverrides(scn, settings?.overrides?.[s] as Record<string, number>);
+    }
     results[s] = runModel(defaults.model, inputs[s]);
   }
   const weightedValue = SCENARIOS.reduce((sum, s) => sum + probabilities[s] * results[s].valuePerShare, 0);
-  const metric = (settings?.exitMetric as ExitMetric) || defaultExitMetric(defaults.model, md.sector, md.industry);
   const allowed = allowedExitMetrics(defaults.model);
-  const exit = exitTarget(results.base, defaults.model, allowed.includes(metric) ? metric : allowed[0], defaults.context, comps, fx, price, baseInputs.fxReportingToTrading || 1, settings?.exitMultiple, compMultiple(md, allowed.includes(metric) ? metric : allowed[0], fx));
+  const wanted = (settings?.exitMetric || cc?.exitMetric || defaultExitMetric(defaults.model, md.sector, md.industry)) as ExitMetric;
+  const metric = allowed.includes(wanted) ? wanted : allowed[0];
+  // Claude's multiple applies only to the metric it was set for.
+  const claudeMultiple = cc?.exitMultiple && (cc.exitMetric ?? metric) === metric ? cc.exitMultiple : null;
+  const userMultiple = settings?.exitMultiple ?? null;
+  const exit = exitTarget(
+    results.base, defaults.model, metric, defaults.context, comps, fx, price, baseInputs.fxReportingToTrading || 1,
+    userMultiple ?? claudeMultiple, compMultiple(md, metric, fx),
+    userMultiple ? "Your multiple" : `Claude base case ${cc?.asOf ?? ""}`.trim(),
+  );
+  const eps5 = results.base.years[4]?.eps;
+  const shares = baseInputs.shares ?? md.shares;
+  if (typeof eps5 === "number" && typeof shares === "number" && shares > 0) exit.netIncomeYear5 = eps5 * shares;
   return {
     kind: "model",
     defaults,
@@ -236,5 +272,7 @@ export function valueSymbol(
     drift: detectDrift(defaults.inputs, settings),
     price,
     upside: price && Number.isFinite(weightedValue) ? clamp(weightedValue / price - 1, -1, 100) : null,
+    claude: cc,
+    dataInputs,
   };
 }

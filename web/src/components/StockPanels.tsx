@@ -19,7 +19,10 @@ export function TargetPanel({ symbol, v, settings }: { symbol: string; v: Valuat
   return (
     <div className="stack">
       <div className="grid kpis">
-        <div className="card kpi"><div className="label">Year-5 {EXIT_METRICS[e.metric].label.split("/")[1]} per share</div><div className="value">{num(e.metricValueYear5)}</div><div className="sub muted">{rep}, base case</div></div>
+        {e.metric === "pe" && e.netIncomeYear5 != null && (
+          <div className="card kpi"><div className="label">Year-5 net income</div><div className="value">{compact(e.netIncomeYear5)}</div><div className="sub muted">{rep}, base case</div></div>
+        )}
+        <div className="card kpi"><div className="label">Year-5 {EXIT_METRICS[e.metric].metricLabel}</div><div className="value">{num(e.metricValueYear5)}</div><div className="sub muted">{rep}, base case</div></div>
         <div className="card kpi"><div className="label">Exit multiple</div><div className="value">{num(e.multiple, 1)}x</div><div className="sub muted">{e.multipleSource}</div></div>
         <div className="card kpi"><div className="label">5-year price target</div><div className="value">{money(e.priceTarget)}</div><div className="sub muted">{trd} · plus {money(e.dividends5y)} dividends</div></div>
         <div className="card kpi"><div className="label">CAGR (total return)</div><div className={`value ${tone(e.cagr)}`}>{pct(e.cagr, 1, true)}</div><div className="sub muted">from {money(v.price)}</div></div>
@@ -27,6 +30,14 @@ export function TargetPanel({ symbol, v, settings }: { symbol: string; v: Valuat
 
       <div className="card">
         <h2>Exit multiple</h2>
+        <p className="small">
+          5-year target = year-5 {EXIT_METRICS[e.metric].metricLabel} {num(e.metricValueYear5)} {rep} × {num(e.multiple, 1)}x
+          {e.metric === "evEbitda" ? " − net debt per share" : ""}
+          {rep !== trd ? `, converted to ${trd}` : ""} = <b>{money(e.priceTarget, trd)}</b>. The year-5 figure comes from the base case growth and margins on the Valuation tab, so changing those changes the target.
+        </p>
+        {v.claude?.exitMultiple != null && v.claude.rationale?.exitMultiple && (
+          <p className="small muted">Claude base case multiple ({v.claude.exitMultiple}x {EXIT_METRICS[(v.claude.exitMetric ?? "pe") as ExitMetric]?.label}): {v.claude.rationale.exitMultiple}</p>
+        )}
         <div className="form-grid">
           <label className="field">
             Metric
@@ -35,7 +46,7 @@ export function TargetPanel({ symbol, v, settings }: { symbol: string; v: Valuat
             </select>
           </label>
           <label className="field">
-            Your multiple (blank = median of candidates)
+            Your multiple (blank = {v.claude?.exitMultiple ? "Claude base case" : "median of candidates"})
             <input
               key={e.metric}
               type="number"
@@ -117,9 +128,17 @@ export function SimplePanel({ symbol, v, md }: { symbol: string; v: SimpleTarget
       </div>
       <div className="card">
         <h2>Your inputs</h2>
+        {v?.claude && (
+          <div className="banner small" style={{ marginBottom: 8 }}>
+            <b>Claude base case ({v.claude.asOf}):</b> {v.claude.summary}{" "}
+            <button className="ghost" onClick={() => mutate((st) => st.saveValuation(symbol, { ...(data!.valuations[symbol] ?? { overrides: {}, probabilities: DEFAULT_PROBABILITIES }), model: "fcff" }))}>Run a DCF anyway</button>
+          </div>
+        )}
         <p className="small muted">
           {md?.assetClass === "crypto"
             ? "Crypto has no cash flows to discount, so there is no DCF. Set your own 5-year target."
+            : v?.claude?.noDcf
+            ? "Set your own 5-year target from the holdings-based value above, or run a DCF anyway."
             : "No DCF for ETFs, cash or bonds. Set a 5-year target, and a manual price if the data feed has none (bonds, fixed deposits)."}
         </p>
         <div className="form-grid">

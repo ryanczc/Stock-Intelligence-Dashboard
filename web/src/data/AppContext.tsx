@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { Session } from "@supabase/supabase-js";
 import { LocalStore, SupabaseStore, supabase, uid, type AppData, type DataStore } from "./store";
 import { computeHoldings, totals, type Holding } from "../lib/portfolio";
-import { valueSymbol, type SimpleTarget, type Valuation } from "../lib/valuation";
+import { claudeCase, valueSymbol, type SimpleTarget, type Valuation } from "../lib/valuation";
 import type { Transaction } from "../lib/types";
 
 interface Ctx {
@@ -81,7 +81,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const comps = (settings?.comps ?? []).map((c) => data.market[c]).filter(Boolean);
       let v: Valuation | SimpleTarget | null = null;
       try {
-        v = valueSymbol(data.market[symbol], data.reference, data.fx, settings, comps, data.instruments[symbol]);
+        v = valueSymbol(data.market[symbol], data.reference, data.fx, settings, comps, data.instruments[symbol], claudeCase(symbol));
       } catch (e) {
         console.error("valuation failed", symbol, e);
       }

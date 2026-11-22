@@ -46,3 +46,10 @@ browser storage. See [docs/SETUP.md](docs/SETUP.md) to go live.
 cd web && npm test            # valuation, holdings and CSV import
 python -m pytest pipeline/tests
 ```
+
+## Claude base case
+
+`web/src/data/claudeBaseCase.json` holds researched default assumptions per ticker (growth, margins, reinvestment,
+risk, exit multiple), each with a one-line reason and a date. On a stock's page they replace the automatic
+data defaults; anything you type in "Your value" overrides them, and clearing the box goes back to them.
+To refresh or add a ticker, ask Claude to update that file and open a pull request; merging it redeploys the site.

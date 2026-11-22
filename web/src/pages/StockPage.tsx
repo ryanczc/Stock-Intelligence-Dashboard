@@ -11,7 +11,7 @@ type Tab = "valuation" | "target" | "activity" | "notes";
 export default function StockPage() {
   const symbol = decodeURIComponent(useParams().symbol ?? "").toUpperCase();
   const { data, holdings, valuation, mutate, store } = useApp();
-  const [tab, setTab] = useState<Tab>("valuation");
+  const [tabState, setTab] = useState<Tab>("valuation");
   const md = data!.market[symbol];
   const v = valuation(symbol);
   const h = holdings.find((x) => x.symbol === symbol);
@@ -19,6 +19,8 @@ export default function StockPage() {
   const settings = data!.valuations[symbol];
   const day = md?.price && md.prevClose ? md.price / md.prevClose - 1 : null;
   const isModel = v?.kind === "model";
+  // the 5y target tab only exists for modelled stocks; fall back when switching to e.g. a crypto page
+  const tab: Tab = tabState === "target" && !isModel ? "valuation" : tabState;
 
   return (
     <div className="stack">
