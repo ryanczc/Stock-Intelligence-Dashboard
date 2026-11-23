@@ -63,3 +63,18 @@ describe("Claude base case", () => {
     console.log(rows.join("\n"));
   });
 });
+
+describe("year-by-year edits", () => {
+  it("override growth, margin and WACC for single years and move the value", () => {
+    const base = valueSymbol(md("NOW"), snap.reference, snap.fx, undefined, [], undefined, claudeCase("NOW")) as Valuation;
+    const edited = valueSymbol(md("NOW"), snap.reference, snap.fx, { overrides: { base: { g1: 0.3, m5: 0.4, w1: 0.07 } }, probabilities: { bear: 0.25, base: 0.5, bull: 0.25 } }, [], undefined, claudeCase("NOW")) as Valuation;
+    const y = edited.results.base.years;
+    expect(y[0].growth).toBe(0.3);
+    expect(y[1].growth).toBe(base.results.base.years[1].growth);
+    expect(y[4].margin).toBe(0.4);
+    expect(y[0].discountRate).toBe(0.07);
+    expect(edited.results.base.valuePerShare).toBeGreaterThan(base.results.base.valuePerShare);
+    // bear/bull keep their own paths
+    expect(edited.results.bear.years[0].growth).toBe(base.results.bear.years[0].growth);
+  });
+});

@@ -2,7 +2,7 @@
 // probability-weighted value -> 5-year exit-multiple price target -> CAGR, plus drift flags.
 import type { Instrument, MarketData, ReferenceData, ScenarioName, ValuationSettings } from "../types";
 import { buildDefaults, clamp, type Defaults, type FxTable, fxRate } from "./defaults";
-import { runModel, type Inputs, type ModelId, type ModelResult } from "./models";
+import { isPerYearKey, runModel, type Inputs, type ModelId, type ModelResult } from "./models";
 import type { ClaudeCase } from "./claude";
 
 export * from "./models";
@@ -240,7 +240,9 @@ export function valueSymbol(
   for (const s of SCENARIOS) {
     if (s === "base") inputs[s] = baseInputs;
     else {
-      const scn = applyOverrides({ ...baseInputs, ...scenarioDefaults(defaults.model, baseInputs, s) } as Inputs, cc?.[s]);
+      // bear/bull start from the base case without its year-by-year edits (they have their own growth/margin paths)
+      const start = Object.fromEntries(Object.entries(baseInputs).filter(([k]) => !isPerYearKey(k))) as Inputs;
+      const scn = applyOverrides({ ...start, ...scenarioDefaults(defaults.model, start, s) } as Inputs, cc?.[s]);
       inputs[s] = applyOverrides(scn, settings?.overrides?.[s] as Record<string, number>);
     }
     results[s] = runModel(defaults.model, inputs[s]);

@@ -47,6 +47,14 @@ export const MODEL_LABELS: Record<ModelId, string> = {
 };
 
 /** growth path: years 1-5 at `high`, years 6-10 fade linearly to `stable`. */
+/** Per-year override key for year t, e.g. g3 = growth in year 3. Returns null when not set. */
+export const PER_YEAR_PREFIXES = ["g", "m", "w"] as const;
+export function yearOverride(i: Inputs, prefix: (typeof PER_YEAR_PREFIXES)[number], t: number): number | null {
+  const v = i[`${prefix}${t}`];
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+export const isPerYearKey = (k: string) => /^[gmw]([1-9]|10)$/.test(k);
+
 export function growthPath(high: number, stable: number): number[] {
   const g: number[] = [];
   for (let t = 1; t <= 10; t++) g.push(t <= 5 ? high : high - ((high - stable) * (t - 5)) / 5);
@@ -119,8 +127,9 @@ export const FCFF_FIELDS = [
 
 export function fcffModel(i: Inputs): ModelResult {
   const warnings: string[] = [];
-  const g = growthPath(i.growthHigh, i.stableGrowth);
-  const wacc = fadePath(i.waccInitial, i.waccStable);
+  // Per-year overrides (g1..g10 growth, m1..m10 operating margin, w1..w10 cost of capital) win over the paths.
+  const g = growthPath(i.growthHigh, i.stableGrowth).map((x, k) => yearOverride(i, "g", k + 1) ?? x);
+  const wacc = fadePath(i.waccInitial, i.waccStable).map((x, k) => yearOverride(i, "w", k + 1) ?? x);
   const N = Math.max(1, Math.round(i.marginConvergenceYear || 5));
   const years: YearRow[] = [];
   let rev = i.revenue;
@@ -129,7 +138,7 @@ export function fcffModel(i: Inputs): ModelResult {
   for (let t = 1; t <= 10; t++) {
     const prev = rev;
     rev = prev * (1 + g[t - 1]);
-    const margin = t >= N ? i.targetMargin : i.targetMargin - ((i.targetMargin - i.currentMargin) * (N - t)) / N;
+    const margin = yearOverride(i, "m", t) ?? (t >= N ? i.targetMargin : i.targetMargin - ((i.targetMargin - i.currentMargin) * (N - t)) / N);
     const ebit = rev * margin;
     const tax = t <= 5 ? i.taxEffective : i.taxEffective + ((i.taxMarginal - i.taxEffective) * (t - 5)) / 5;
     const nopat = ebit > 0 ? ebit * (1 - tax) : ebit; // no tax on losses (simplification: ignores NOL carry-forward)
@@ -163,7 +172,7 @@ export function fcffModel(i: Inputs): ModelResult {
   if (rS <= gS) warnings.push("Stable cost of capital must be above stable growth; terminal value is not meaningful.");
   if (gS > 0.05) warnings.push("Stable growth above 5% is higher than most economies can sustain forever.");
   const rev11 = rev * (1 + gS);
-  const ebit11 = rev11 * i.targetMargin;
+  const ebit11 = rev11 * (years[9]?.margin ?? i.targetMargin); // terminal margin = year-10 margin
   const nopat11 = ebit11 * (1 - i.taxMarginal);
   const reinvRate = i.terminalRoic > 0 ? gS / i.terminalRoic : 0;
   const fcff11 = nopat11 * (1 - reinvRate);

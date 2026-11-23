@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useApp } from "../data/AppContext";
-import { Pct, Sparkline, SymbolCell, valuationCells } from "../components/common";
+import { Pct, PriceToDcf, Sparkline, SymbolCell, valuationCells } from "../components/common";
 import { money, daysUntil } from "../lib/format";
 
 export default function Watchlist() {
@@ -43,9 +43,10 @@ export default function Watchlist() {
                 <th>1y</th>
                 <th className="num">Your avg cost</th>
                 <th className="num">DCF value</th>
+                <th className="num"><span className="tip" title="Share price as a % of the DCF value. Under 100% = trading below intrinsic value">Price / DCF</span></th>
                 <th className="num">Upside</th>
                 <th className="num">5y target</th>
-                <th className="num">CAGR</th>
+                <th className="num"><span className="tip" title="Total return CAGR to the 5y target, including projected dividends">5y CAGR</span></th>
                 <th>Next event</th>
                 <th />
               </tr>
@@ -67,6 +68,7 @@ export default function Watchlist() {
                     <td><Sparkline points={m?.history} /></td>
                     <td className="num">{h ? money(h.avgCost) : <span className="muted">–</span>}</td>
                     <td className="num">{v.dcf}</td>
+                    <td className="num"><PriceToDcf x={v.priceToDcf} /></td>
                     <td className="num"><Pct x={v.upside} /></td>
                     <td className="num">{v.target}</td>
                     <td className="num"><Pct x={v.cagr} /></td>

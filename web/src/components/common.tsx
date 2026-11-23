@@ -42,11 +42,18 @@ export function SymbolCell({ symbol, name, extra }: { symbol: string; name?: str
 
 /** Intrinsic value, 5y target and CAGR columns, shared by Holdings and Watchlist. */
 export function valuationCells(v: Valuation | SimpleTarget | null, ccy: string) {
-  if (!v) return { dcf: "–", upside: null as number | null, target: "–", cagr: null as number | null, flag: false };
-  if (v.kind === "target") return { dcf: "n/a", upside: null, target: v.targetPrice5y ? money(v.targetPrice5y, undefined) : "set", cagr: v.cagr, flag: false };
-  return { dcf: money(v.weightedValue), upside: v.upside, target: money(v.exit.priceTarget), cagr: v.exit.cagr, flag: v.drift.length > 0, ccy };
+  if (!v) return { dcf: "–", upside: null as number | null, priceToDcf: null as number | null, target: "–", cagr: null as number | null, flag: false };
+  if (v.kind === "target") return { dcf: "n/a", upside: null, priceToDcf: null, target: v.targetPrice5y ? money(v.targetPrice5y, undefined) : "set", cagr: v.cagr, flag: false };
+  const priceToDcf = v.price && v.weightedValue > 0 ? v.price / v.weightedValue : null;
+  return { dcf: money(v.weightedValue), upside: v.upside, priceToDcf, target: money(v.exit.priceTarget), cagr: v.exit.cagr, flag: v.drift.length > 0, ccy };
 }
 
 export function Pct({ x, sign = true }: { x: number | null | undefined; sign?: boolean }) {
   return <span className={tone(x)}>{pct(x, 1, sign)}</span>;
+}
+
+/** Price as a % of DCF value: green below 100% (trading under intrinsic value), red above. */
+export function PriceToDcf({ x }: { x: number | null | undefined }) {
+  if (x == null || !Number.isFinite(x)) return <span className="muted">–</span>;
+  return <span className={x < 1 ? "pos" : "neg"}>{pct(x, 0)}</span>;
 }

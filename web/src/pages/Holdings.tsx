@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { Link } from "react-router-dom";
 import { useApp } from "../data/AppContext";
-import { Pct, Sparkline, SymbolCell, valuationCells } from "../components/common";
+import { Pct, PriceToDcf, Sparkline, SymbolCell, valuationCells } from "../components/common";
 import { money, pct, tone } from "../lib/format";
 
 export default function Holdings() {
@@ -43,9 +43,10 @@ export default function Holdings() {
               <th className="num">P&amp;L (SGD)</th>
               <th className="num">Weight</th>
               <th className="num"><span className="tip" title="Probability-weighted intrinsic value per share (bear/base/bull), trading currency">DCF value</span></th>
+              <th className="num"><span className="tip" title="Share price as a % of the DCF value. Under 100% = trading below intrinsic value">Price / DCF</span></th>
               <th className="num">Upside</th>
               <th className="num"><span className="tip" title="Year-5 metric x exit multiple, trading currency">5y target</span></th>
-              <th className="num"><span className="tip" title="Total return CAGR to the 5y target, including projected dividends">CAGR</span></th>
+              <th className="num"><span className="tip" title="Total return CAGR to the 5y target, including projected dividends">5y CAGR</span></th>
             </tr>
           </thead>
           <tbody>
@@ -84,6 +85,7 @@ export default function Holdings() {
                     </td>
                     <td className="num">{pct(totals.valueSgd ? h.valueSgd / totals.valueSgd : null)}</td>
                     <td className="num">{v.dcf}</td>
+                    <td className="num"><PriceToDcf x={v.priceToDcf} /></td>
                     <td className="num"><Pct x={v.upside} /></td>
                     <td className="num">{v.target}</td>
                     <td className="num"><Pct x={v.cagr} /></td>
@@ -104,7 +106,7 @@ export default function Holdings() {
                         </td>
                         <td className="num">{money(p.valueSgd, undefined, 0)}</td>
                         <td className={`num ${tone(p.valueSgd - p.costSgd)}`}>{p.qty > 0 ? money(p.valueSgd - p.costSgd, undefined, 0) : "–"}</td>
-                        <td colSpan={5} />
+                        <td colSpan={6} />
                       </tr>
                     ))}
                 </Fragment>
@@ -119,7 +121,7 @@ export default function Holdings() {
               </td>
               <td className="num"><b>{money(totals.valueSgd, undefined, 0)}</b></td>
               <td className={`num ${tone(totals.unrealizedSgd)}`}><b>{money(totals.unrealizedSgd, undefined, 0)}</b></td>
-              <td colSpan={5} />
+              <td colSpan={6} />
             </tr>
           </tfoot>
         </table>
