@@ -60,7 +60,8 @@ main { max-width: 1440px; margin: 0 auto; padding: 20px; }
 @media (max-width: 760px) {
   .topbar { padding: 10px 16px; backdrop-filter: none; background: var(--bg); }
   .topbar .nav { position: fixed; bottom: 0; left: 0; right: 0; justify-content: space-around; background: var(--panel); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
-  .nav a { font-size: 11px; padding: 6px 4px; white-space: nowrap; }
+  .nav a { font-size: 11px; padding: 6px 6px; white-space: nowrap; }
+  .topbar .nav { overflow-x: auto; justify-content: flex-start; scrollbar-width: none; }
   main { padding: 16px 16px 90px; }
 }
 
@@ -151,3 +152,9 @@ details summary { cursor: pointer; color: var(--muted); }
 .cal-list { display: none; }
 @media (max-width: 760px) { .cal { display: none; } .cal-list { display: block; } }
 .cell.year { width: 64px; text-align: right; padding: 3px 4px; font-size: 12px; }
+
+/* PM tools */
+button.card.kpi { cursor: pointer; font: inherit; color: inherit; border: 1px solid var(--line); }
+button.card.kpi.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+table.corr td, table.corr th { padding: 4px 6px; min-width: 44px; }
+.alloc span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

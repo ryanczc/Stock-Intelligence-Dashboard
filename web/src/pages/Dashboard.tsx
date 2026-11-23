@@ -5,6 +5,7 @@ import { allocation } from "../lib/portfolio";
 import { activityFeed, headlines, upcomingEvents } from "../lib/activity";
 import { ago, compact, money, pct } from "../lib/format";
 import { claudeCase, recentClaudeChanges } from "../lib/valuation";
+import { checkTripwire, describe, formatMetric, tripwiresOf } from "../lib/tripwires";
 
 const LABELS: Record<string, string> = { stock: "Stocks", bank: "Banks", insurer: "Insurers", reit: "REITs", etf: "ETFs", crypto: "Crypto", bond: "Bonds", cash: "Cash" };
 
@@ -24,7 +25,7 @@ function Alloc({ title, rows }: { title: string; rows: { key: string; valueSgd: 
 }
 
 export default function Dashboard() {
-  const { data, holdings, totals, loadSample, store, mutate } = useApp();
+  const { data, holdings, totals, loadSample, store, mutate, valuation } = useApp();
   const d = data!;
   const open = holdings.filter((h) => h.qty > 0);
   const symbols = [...new Set([...open.map((h) => h.symbol), ...d.watchlist])];
@@ -32,6 +33,12 @@ export default function Dashboard() {
   const activity = activityFeed(symbols, d.market);
   const news = headlines(symbols, d.market, 12);
   const unread = d.alerts.filter((a) => !a.read);
+  const trips = Object.keys(d.instruments).flatMap((sym) => {
+    const v = valuation(sym);
+    const dcf = v?.kind === "model" && Number.isFinite(v.weightedValue) ? v.weightedValue : null;
+    return tripwiresOf(d.instruments[sym]).map((w) => checkTripwire(sym, w, d.market[sym], dcf));
+  });
+  const crossed = trips.filter((t) => t.breached);
   const claudeChanges = recentClaudeChanges(symbols, 10);
   const notResearched = symbols.filter((s) => !claudeCase(s) && d.market[s]?.assetClass !== "crypto" && d.market[s]?.assetClass !== "cash");
   const lastUpdate = Object.values(d.market).map((m) => m.updatedAt).sort().pop();
@@ -56,6 +63,23 @@ export default function Dashboard() {
         <Kpi label="Realised + dividends" value={`S$${money(totals.realizedSgd + totals.dividendsSgd, undefined, 0)}`} sub={`dividends S$${money(totals.dividendsSgd, undefined, 0)}`} />
         <Kpi label="Prices updated" value={ago(lastUpdate)} sub={store.mode === "local" ? "bundled snapshot" : "5:30 PM and 6 AM SGT"} />
       </div>
+
+      {crossed.length > 0 && (
+        <div className="card" style={{ borderLeft: "3px solid var(--warn)" }}>
+          <h2>Tripwires crossed ({crossed.length} of {trips.length})</h2>
+          <ul className="list">
+            {crossed.map((t) => (
+              <li key={t.symbol + t.wire.id}>
+                <span style={{ flex: 1 }}>
+                  <Link to={`/s/${encodeURIComponent(t.symbol)}`}><b>{t.symbol}</b></Link> {describe(t.wire)}: now <b>{formatMetric(t.wire.metric, t.value)}</b>
+                  {t.wire.note && <span className="muted small"> · {t.wire.note}</span>}
+                </span>
+                <span className="chip warn">review thesis</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {unread.length > 0 && (
         <div className="card">

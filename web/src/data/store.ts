@@ -1,7 +1,7 @@
 // Storage: Supabase when configured (real use), otherwise the browser's localStorage plus a bundled
 // market-data snapshot (preview / demo mode).
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Alert, Instrument, JournalEntry, MarketData, MarketEvent, ReferenceData, Transaction, ValuationSettings } from "../lib/types";
+import type { Alert, Benchmarks, Decision, Instrument, JournalEntry, MarketData, MarketEvent, ReferenceData, Transaction, ValuationSettings } from "../lib/types";
 
 export interface AppData {
   transactions: Transaction[];
@@ -12,11 +12,15 @@ export interface AppData {
   journal: JournalEntry[];
   customEvents: (MarketEvent & { id: string })[];
   alerts: Alert[];
+  decisions: Decision[];
   market: Record<string, MarketData>;
   reference: ReferenceData | null;
   fx: Record<string, number>;
   fxUpdatedAt?: string;
   macro: MarketEvent[];
+  benchmarks: Benchmarks;
+  /** Database tables the app expects but couldn't read (an SQL update hasn't been run yet). */
+  missingTables: string[];
 }
 
 export interface DataStore {
@@ -33,6 +37,8 @@ export interface DataStore {
   saveCustomEvent(e: MarketEvent & { id: string }): Promise<void>;
   deleteCustomEvent(id: string): Promise<void>;
   markAlertsRead(ids: string[]): Promise<void>;
+  saveDecision(d: Decision): Promise<void>;
+  deleteDecision(id: string): Promise<void>;
 }
 
 export const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
@@ -41,8 +47,8 @@ export const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random(
 // Local (browser) store
 
 const KEY = "sid:v1";
-type LocalState = Omit<AppData, "market" | "reference" | "fx" | "fxUpdatedAt" | "macro">;
-const emptyLocal = (): LocalState => ({ transactions: [], watchlist: [], instruments: {}, valuations: {}, notes: {}, journal: [], customEvents: [], alerts: [] });
+type LocalState = Omit<AppData, "market" | "reference" | "fx" | "fxUpdatedAt" | "macro" | "benchmarks" | "missingTables">;
+const emptyLocal = (): LocalState => ({ transactions: [], watchlist: [], instruments: {}, valuations: {}, notes: {}, journal: [], customEvents: [], alerts: [], decisions: [] });
 
 export class LocalStore implements DataStore {
   mode = "local" as const;
@@ -65,7 +71,7 @@ export class LocalStore implements DataStore {
   }
   async load(): Promise<AppData> {
     const s = this.read();
-    let snap: { market: MarketData[]; fx: Record<string, number>; reference: ReferenceData; generatedAt?: string; macro?: MarketEvent[] } = { market: [], fx: { SGD: 1 }, reference: {} };
+    let snap: { market: MarketData[]; fx: Record<string, number>; reference: ReferenceData; generatedAt?: string; macro?: MarketEvent[]; benchmarks?: Benchmarks } = { market: [], fx: { SGD: 1 }, reference: {} };
     try {
       const r = await fetch(`${import.meta.env.BASE_URL}demo/snapshot.json`);
       if (r.ok) snap = await r.json();
@@ -79,7 +85,18 @@ export class LocalStore implements DataStore {
       fx: snap.fx,
       fxUpdatedAt: snap.generatedAt,
       macro: snap.macro ?? [],
+      benchmarks: snap.benchmarks ?? {},
+      missingTables: [],
     };
+  }
+  async saveDecision(d: Decision) {
+    this.write((s) => {
+      s.decisions = s.decisions.filter((x) => x.id !== d.id);
+      s.decisions.push(d);
+    });
+  }
+  async deleteDecision(id: string) {
+    this.write((s) => void (s.decisions = s.decisions.filter((x) => x.id !== id)));
   }
   async upsertTransactions(txs: Transaction[]) {
     this.write((s) => {
@@ -156,7 +173,7 @@ export class SupabaseStore implements DataStore {
   constructor(private db: SupabaseClient) {}
   async load(): Promise<AppData> {
     const d = this.db;
-    const [tx, wl, ins, val, notes, journal, ev, alerts, market, ref] = await Promise.all([
+    const [tx, wl, ins, val, notes, journal, ev, alerts, market, ref, dec] = await Promise.all([
       d.from("transactions").select("*").order("trade_date"),
       d.from("watchlist").select("symbol"),
       d.from("instruments").select("*"),
@@ -167,9 +184,22 @@ export class SupabaseStore implements DataStore {
       d.from("alerts").select("*").order("created_at", { ascending: false }).limit(200),
       d.from("market_data").select("symbol,data"),
       d.from("reference_data").select("key,data,updated_at"),
+      d.from("decisions").select("*").order("decision_date", { ascending: false }),
     ]);
-    const refs = Object.fromEntries((check(ref) ?? []).map((r: { key: string; data: unknown; updated_at: string }) => [r.key, r]));
     const num = (x: unknown) => (x == null ? x : Number(x));
+    // Tables added after the first setup: if the SQL update hasn't been run yet, keep working without them.
+    const missingTables: string[] = [];
+    let decisions: Decision[] = [];
+    if (dec.error) missingTables.push("decisions");
+    else
+      decisions = (dec.data ?? []).map((x: Decision) => ({
+        ...x,
+        price: Number(x.price),
+        target_price: num(x.target_price) as number | null,
+        stop_price: num(x.stop_price) as number | null,
+        dcf_value: num(x.dcf_value) as number | null,
+      }));
+    const refs = Object.fromEntries((check(ref) ?? []).map((r: { key: string; data: unknown; updated_at: string }) => [r.key, r]));
     return {
       transactions: (check(tx) ?? []).map((t: Transaction) => ({ ...t, quantity: Number(t.quantity), price: Number(t.price), fees: Number(t.fees), fx_to_sgd: num(t.fx_to_sgd) as number | null })),
       watchlist: (check(wl) ?? []).map((r: { symbol: string }) => r.symbol),
@@ -184,6 +214,9 @@ export class SupabaseStore implements DataStore {
       fx: (refs.fx?.data as { rates: Record<string, number> })?.rates ?? { SGD: 1 },
       fxUpdatedAt: refs.fx?.updated_at,
       macro: (refs.macro?.data as { events: MarketEvent[] })?.events ?? [],
+      benchmarks: (refs.benchmarks?.data as Benchmarks) ?? {},
+      decisions,
+      missingTables,
     };
   }
   async upsertTransactions(txs: Transaction[]) {
@@ -222,5 +255,11 @@ export class SupabaseStore implements DataStore {
   }
   async markAlertsRead(ids: string[]) {
     if (ids.length) check(await this.db.from("alerts").update({ read: true }).in("id", ids));
+  }
+  async saveDecision(x: Decision) {
+    check(await this.db.from("decisions").upsert(x));
+  }
+  async deleteDecision(id: string) {
+    check(await this.db.from("decisions").delete().eq("id", id));
   }
 }

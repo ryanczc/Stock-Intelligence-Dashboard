@@ -112,11 +112,32 @@ create table if not exists alerts (
 );
 alter table alerts enable row level security;
 
+-- Decision journal (also in add-decisions.sql for projects set up before it existed).
+create table if not exists decisions (
+  id uuid primary key default gen_random_uuid(),
+  symbol text not null,
+  decision_date date not null default current_date,
+  action text not null check (action in ('buy','add','trim','sell','pass')),
+  price numeric not null,
+  thesis text not null default '',
+  target_price numeric,
+  stop_price numeric,
+  conviction int check (conviction between 1 and 5),
+  horizon_months int,
+  dcf_value numeric,
+  review text,
+  outcome text,
+  reviewed_at date,
+  created_at timestamptz not null default now()
+);
+create index if not exists decisions_symbol on decisions(symbol, decision_date desc);
+alter table decisions enable row level security;
+
 -- Row level security: owner only.
 do $$
 declare t text;
 begin
-  foreach t in array array['app_owner','transactions','watchlist','instruments','valuations','notes','journal','custom_events','market_data','reference_data','alerts']
+  foreach t in array array['app_owner','transactions','watchlist','instruments','valuations','notes','journal','custom_events','market_data','reference_data','alerts','decisions']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists owner_all on %I', t);
