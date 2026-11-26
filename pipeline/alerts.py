@@ -94,7 +94,7 @@ def send_telegram(alerts: list[dict], log=print) -> None:
     token, chat = (os.environ.get("TELEGRAM_BOT_TOKEN") or "").strip(), (os.environ.get("TELEGRAM_CHAT_ID") or "").strip()
     if not token or not chat or not alerts:
         return
-    icons = {"price_move": "📈", "earnings": "📅", "dividend": "💵", "insider": "🕵️", "fund": "🏦", "macro": "🌐", "split": "✂️"}
+    icons = {"price_move": "📈", "earnings": "📅", "dividend": "💵", "insider": "🕵️", "fund": "🏦", "macro": "🌐", "split": "✂️", "tripwire": "🚨"}
     lines = [f"{icons.get(a['kind'], '•')} {a['message']}" for a in alerts]
     for i in range(0, len(lines), 30):
         try:

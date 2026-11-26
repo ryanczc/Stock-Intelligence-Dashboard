@@ -1,0 +1,44 @@
+{
+  "symbol": "AAPL",
+  "asOf": "2026-11-22",
+  "summary": "Mature consumer hardware plus a high-margin services business; huge buybacks.",
+  "base": {
+    "growthHigh": 0.06,
+    "targetMargin": 0.32,
+    "marginConvergenceYear": 3,
+    "salesToCapital": 2.5,
+    "failureProbability": 0
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 26,
+  "rationale": {
+    "growthHigh": "iPhone cycles plus ~12% services growth: ~6% blended.",
+    "targetMargin": "Services mix pushes operating margin slightly above today's ~31%.",
+    "exitMultiple": "26x: quality premium, in line with its 5-year average."
+  },
+  "thesis": {
+    "text": "Apple pairs a premium hardware installed base with a high-margin services business and large buybacks.",
+    "bull": [
+      "Services ~25% of revenue at ~75% gross margin",
+      "AI upgrade cycle for iPhone",
+      "Buybacks shrink shares ~3% a year"
+    ],
+    "bear": [
+      "China competition and tariffs",
+      "App Store fee regulation",
+      "Slow unit growth"
+    ],
+    "watch": [
+      "iPhone cycle",
+      "Services growth",
+      "Regulatory rulings"
+    ]
+  },
+  "sources": [],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

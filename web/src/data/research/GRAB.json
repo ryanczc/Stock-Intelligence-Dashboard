@@ -1,0 +1,53 @@
+{
+  "symbol": "GRAB",
+  "asOf": "2026-11-22",
+  "summary": "Southeast Asia super-app (rides, food delivery, fintech). Turned GAAP-profitable in 2025; growing ~20% with margins expanding; large net cash.",
+  "base": {
+    "growthHigh": 0.17,
+    "targetMargin": 0.14,
+    "marginConvergenceYear": 6,
+    "salesToCapital": 2,
+    "failureProbability": 0
+  },
+  "bear": {
+    "growthHigh": 0.1,
+    "targetMargin": 0.1
+  },
+  "bull": {
+    "growthHigh": 0.22,
+    "targetMargin": 0.18
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 28,
+  "rationale": {
+    "growthHigh": "Revenue growth ~20% now (deliveries, mobility, lending); ~17% average over 5 years.",
+    "targetMargin": "Uber's operating margin is heading to mid-teens; Grab follows with lower prices in its markets.",
+    "marginConvergenceYear": "Margin expansion is gradual, reaching target around year 6.",
+    "exitMultiple": "28x: still growing double digits in year 5, similar to Uber/DoorDash on forward earnings."
+  },
+  "thesis": {
+    "text": "Grab is Southeast Asia's leading super-app across rides, food delivery and digital banking. It is now profitable and growing ~20%, with a large net cash pile.",
+    "bull": [
+      "Dominant market share in most SEA markets",
+      "Fintech/lending scaling on its own user base",
+      "Net cash supports buybacks"
+    ],
+    "bear": [
+      "Regulatory and labour-cost risk across many countries",
+      "Competition from GoTo, Shopee Food",
+      "Margins still thin"
+    ],
+    "watch": [
+      "Adjusted EBITDA and free cash flow growth",
+      "Possible GoTo merger news",
+      "Lending book quality"
+    ]
+  },
+  "sources": [],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

@@ -81,6 +81,9 @@ class Store:
     def transactions_missing_fx(self) -> list[dict]:
         return self._get("transactions", {"select": "id,currency,trade_date", "fx_to_sgd": "is.null", "currency": "not.is.null"})
 
+    def instruments(self) -> list[dict]:
+        return self._get("instruments", {"select": "symbol,asset_class,extra"})
+
     def custom_events(self) -> list[dict]:
         return self._get("custom_events", {"select": "symbol,date,type,title"})
 

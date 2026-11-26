@@ -1,0 +1,60 @@
+{
+  "symbol": "NOW",
+  "asOf": "2026-11-22",
+  "summary": "Category leader in IT/enterprise workflow; Q3 2026 subscription revenue +21%, FY26 guide +22.5%, AI ACV target raised to $1.7B. Growth slowly decelerates; GAAP margin rises as stock-based pay shrinks relative to revenue.",
+  "base": {
+    "growthHigh": 0.18,
+    "targetMargin": 0.28,
+    "marginConvergenceYear": 5,
+    "salesToCapital": 1.5,
+    "failureProbability": 0
+  },
+  "bear": {
+    "growthHigh": 0.12,
+    "targetMargin": 0.22
+  },
+  "bull": {
+    "growthHigh": 0.22,
+    "targetMargin": 0.33
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 35,
+  "rationale": {
+    "growthHigh": "Q3 2026 subscription growth 21% and cRPO +20.5%; assume ~18% average over 5 years as the base gets larger.",
+    "targetMargin": "Non-GAAP operating margin is ~32%, GAAP ~10-15% because of stock-based pay; a mature GAAP margin of ~28% treats that pay as a real cost.",
+    "marginConvergenceYear": "Margin expands steadily over 5 years.",
+    "salesToCapital": "Asset-light software; mostly capitalised R&D and data centres.",
+    "failureProbability": "Large, profitable, net cash.",
+    "exitMultiple": "35x year-5 earnings: still ~10%+ growth then, in line with large-cap software quality names."
+  },
+  "thesis": {
+    "text": "ServiceNow is the system of record for enterprise workflows, and AI agents raise what customers pay per seat. Growth is slowing from the mid-20s to around 20%, but cash generation is strong and the business is sticky.",
+    "bull": [
+      "AI agent products (Now Assist) lift price per customer; AI ACV target raised to $1.7B for 2026",
+      "~98% renewal rate and 36% free-cash-flow margin",
+      "Expanding beyond IT into CRM, HR and finance workflows"
+    ],
+    "bear": [
+      "AI agents from Microsoft, Salesforce and start-ups could compress seat-based pricing",
+      "Stock-based pay keeps GAAP margins far below adjusted margins",
+      "Federal spending and large-deal timing can make quarters lumpy"
+    ],
+    "watch": [
+      "Quarterly subscription growth vs the ~20% trend",
+      "AI ACV progress vs $1.7B target",
+      "Operating margin guidance for 2027"
+    ]
+  },
+  "sources": [
+    {
+      "title": "ServiceNow Q3 2026 results",
+      "url": "https://finviz.com/news/410638/servicenow-reports-third-quarter-2026-financial-results"
+    }
+  ],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

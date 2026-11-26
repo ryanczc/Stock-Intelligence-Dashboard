@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useApp } from "../data/AppContext";
 import type { ScenarioName, ValuationSettings } from "../lib/types";
-import { DEFAULT_PROBABILITIES, MODEL_LABELS, SCENARIOS, scenarioDefaults, type ModelId, type Valuation } from "../lib/valuation";
+import { DEFAULT_PROBABILITIES, MODEL_LABELS, SCENARIOS, isPerYearKey, scenarioDefaults, type ModelId, type Valuation } from "../lib/valuation";
 import { FIELDS, type FieldMeta } from "../lib/valuation/fields";
 import { compact, money, num, pct } from "../lib/format";
 
@@ -53,6 +53,7 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
   };
 
   const groups = [...new Set(fields.map((f) => f.group))];
+  const fromClaude = (key: string) => !!v.claude && (scn === "base" ? v.claude.base?.[key] != null : v.claude[scn]?.[key] != null);
 
   return (
     <div className="stack">
@@ -73,6 +74,15 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
           })}
         </div>
       )}
+      {v.claude && (
+        <div className="card small">
+          <b>Claude base case</b> <span className="muted">· researched {v.claude.asOf}</span>
+          <p style={{ margin: "6px 0 0" }}>{v.claude.summary}</p>
+          <p className="muted" style={{ margin: "6px 0 0" }}>
+            The "Default" column below uses these researched assumptions where set (hover a source to read why). Type in "Your value" to override any of them; clear the box to go back.
+          </p>
+        </div>
+      )}
       {v.defaults.missing.length > 0 && <div className="banner small">Missing from free data: {v.defaults.missing.join(", ")}. Enter these below.</div>}
 
       <div className="grid kpis">
@@ -86,7 +96,7 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
         <div className="card kpi">
           <div className="label">Probability-weighted value</div>
           <div className="value">{money(v.weightedValue)}</div>
-          <div className={`sub ${v.upside != null && v.upside > 0 ? "pos" : "neg"}`}>{pct(v.upside, 1, true)} vs {money(v.price)}</div>
+          <div className={`sub ${v.upside != null && v.upside > 0 ? "pos" : "neg"}`}>{pct(v.upside, 1, true)} vs {money(v.price)} · price is {pct(v.price && v.weightedValue > 0 ? v.price / v.weightedValue : null, 0)} of DCF</div>
         </div>
       </div>
 
@@ -134,8 +144,8 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
                   style={{ width: 64 }}
                   type="number"
                   step="5"
-                  defaultValue={Math.round((s.probabilities?.[x] ?? DEFAULT_PROBABILITIES[x]) * 100)}
-                  onBlur={(e) => save({ ...s, probabilities: { ...(s.probabilities ?? DEFAULT_PROBABILITIES), [x]: Number(e.target.value) / 100 } })}
+                  defaultValue={Math.round(v.probabilities[x] * 100)}
+                  onBlur={(e) => save({ ...s, probabilities: { ...v.probabilities, [x]: Number(e.target.value) / 100 } })}
                 />
                 %
               </label>
@@ -151,6 +161,7 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
             <thead>
               <tr>
                 <th>Assumption</th>
+                {scn === "base" && v.claude && <th className="num"><span className="tip" title="Automatic default from Yahoo + Damodaran data, before the Claude base case">Data</span></th>}
                 <th className="num">Default</th>
                 <th className="num">Your value</th>
                 <th>Source</th>
@@ -158,14 +169,15 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
             </thead>
             {groups.map((g) => (
               <tbody key={g}>
-                <tr><td colSpan={4} className="muted small" style={{ paddingTop: 14 }}><b>{g}</b></td></tr>
+                <tr><td colSpan={scn === "base" && v.claude ? 5 : 4} className="muted small" style={{ paddingTop: 14 }}><b>{g}</b></td></tr>
                 {fields.filter((f) => f.group === g).map((f) => {
                   const ov = s.overrides[scn]?.[f.key];
                   const def = scenarioDefault(f.key);
                   return (
                     <tr key={f.key + scn}>
                       <td><span className="tip" title={f.help}>{f.label}</span></td>
-                      <td className="num">{show(f, def, rep)}</td>
+                      {scn === "base" && v.claude && <td className="num muted">{show(f, v.dataInputs[f.key], rep)}</td>}
+                      <td className="num">{show(f, def, rep)}{fromClaude(f.key) && <span className="chip" title="Claude base case">C</span>}</td>
                       <td className="num">
                         <input
                           className={`cell ${ov != null ? "override" : ""}`}
@@ -173,6 +185,7 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
                           step="any"
                           placeholder={Number.isFinite(def) ? String(toInput(f, def)) : ""}
                           defaultValue={typeof ov === "number" ? toInput(f, ov) : ""}
+                          onKeyDown={enterBlurs}
                           onBlur={(e) => {
                             const val = fromInput(f, e.target.value);
                             if (val !== (typeof ov === "number" ? ov : null)) setField(f.key, val);
@@ -181,7 +194,7 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
                         />
                         {f.kind === "pct" && <span className="muted small"> %</span>}
                       </td>
-                      <td className="small muted">{v.defaults.sources[f.key] ?? ""}</td>
+                      <td className="small muted" style={{ maxWidth: 380 }}>{v.defaults.sources[f.key] ?? ""}</td>
                     </tr>
                   );
                 })}
@@ -192,13 +205,26 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
         <div className="row" style={{ marginTop: 10 }}>
           <button className="ghost" onClick={() => setAdvanced(!advanced)}>{advanced ? "Hide" : "Show"} advanced inputs</button>
           <button className="ghost danger" onClick={() => save({ ...s, overrides: { ...s.overrides, [scn]: {} }, baselineAtEdit: scn === "base" ? {} : s.baselineAtEdit })}>
-            Reset {SCN_LABEL[scn].toLowerCase()} case to defaults
+            Reset {SCN_LABEL[scn].toLowerCase()} case to {v.claude ? "Claude base case" : "defaults"}
           </button>
         </div>
       </div>
 
       <div className="card">
-        <h2>{SCN_LABEL[scn]} case projection ({rep})</h2>
+        <div className="row between">
+          <h2>{SCN_LABEL[scn]} case projection ({rep})</h2>
+          {model === "fcff" && Object.keys(s.overrides[scn] ?? {}).some(isPerYearKey) && (
+            <button className="ghost danger" onClick={() => save({ ...s, overrides: { ...s.overrides, [scn]: Object.fromEntries(Object.entries(s.overrides[scn] ?? {}).filter(([k]) => !isPerYearKey(k))) } })}>
+              Clear year-by-year edits
+            </button>
+          )}
+        </div>
+        {model === "fcff" && (
+          <p className="small muted">
+            Type over any year's growth, operating margin or cost of capital (in %) and press Enter: the DCF value updates straight away. Edited years are highlighted;
+            years you leave blank follow the assumptions above (years 1-5 at the high growth rate, fading to stable growth by year 10). The terminal value uses the year-10 margin.
+          </p>
+        )}
         {res.warnings.map((w) => <div key={w} className="banner small">{w}</div>)}
         <div className="table-wrap">
           <table>
@@ -210,15 +236,20 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
               </tr>
             </thead>
             <tbody>
-              <Row label="Growth" vals={res.years.map((y) => pct(y.growth))} term={pct(res.terminal.growth)} />
+              {model === "fcff" ? (
+                <YearInputs label="Revenue growth" prefix="g" vals={res.years.map((y) => y.growth)} term={pct(res.terminal.growth)} ov={s.overrides[scn]} onSet={setField} />
+              ) : (
+                <Row label="Growth" vals={res.years.map((y) => pct(y.growth))} term={pct(res.terminal.growth)} />
+              )}
               {model === "fcff" && (
                 <>
                   <Row label="Revenue" vals={res.years.map((y) => compact(y.revenue))} />
-                  <Row label="Operating margin" vals={res.years.map((y) => pct(y.margin))} />
+                  <YearInputs label="Operating margin" prefix="m" vals={res.years.map((y) => y.margin ?? NaN)} ov={s.overrides[scn]} onSet={setField} />
                   <Row label="EBIT" vals={res.years.map((y) => compact(y.ebit))} />
                   <Row label="Tax rate" vals={res.years.map((y) => pct(y.taxRate))} />
                   <Row label="Reinvestment" vals={res.years.map((y) => compact(y.reinvestment))} />
                   <Row label="FCFF" vals={res.years.map((y) => compact(y.cashFlow))} term={compact(res.terminal.cashFlow)} />
+                  <Row label="Net income" vals={res.years.map((y) => compact(y.eps * v.inputs[scn].shares))} />
                   <Row label="EPS" vals={res.years.map((y) => num(y.eps))} />
                 </>
               )}
@@ -237,7 +268,11 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
                   <Row label="Distribution / unit" vals={res.years.map((y) => num(y.dps, 4))} term={num(res.terminal.cashFlow, 4)} />
                 </>
               )}
-              <Row label="Discount rate" vals={res.years.map((y) => pct(y.discountRate, 2))} term={pct(res.terminal.discountRate, 2)} />
+              {model === "fcff" ? (
+                <YearInputs label="Cost of capital (WACC)" prefix="w" vals={res.years.map((y) => y.discountRate)} term={pct(res.terminal.discountRate, 2)} ov={s.overrides[scn]} onSet={setField} />
+              ) : (
+                <Row label="Discount rate" vals={res.years.map((y) => pct(y.discountRate, 2))} term={pct(res.terminal.discountRate, 2)} />
+              )}
               <Row label="Present value" vals={res.years.map((y) => (model === "fcff" ? compact(y.pv) : num(y.pv, 3)))} term={model === "fcff" ? compact(res.terminal.pv) : num(res.terminal.pv, 3)} />
             </tbody>
           </table>
@@ -259,6 +294,51 @@ export function ValuationPanel({ symbol, v, settings }: { symbol: string; v: Val
         </table>
       </div>
     </div>
+  );
+}
+
+const enterBlurs = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+};
+
+/** One projection row whose yearly values can be typed over (stored as g1..g10 / m1..m10 / w1..w10 overrides). */
+function YearInputs({ label, prefix, vals, term, ov, onSet }: {
+  label: string;
+  prefix: "g" | "m" | "w";
+  vals: number[];
+  term?: string;
+  ov: Record<string, number | string> | undefined;
+  onSet: (key: string, value: number | null) => void;
+}) {
+  return (
+    <tr>
+      <td className="small" style={{ whiteSpace: "nowrap" }}><b>{label}</b> <span className="muted">%</span></td>
+      {vals.map((v, i) => {
+        const key = `${prefix}${i + 1}`;
+        const mine = typeof ov?.[key] === "number" ? (ov[key] as number) : null;
+        return (
+          <td key={key} className="num small">
+            <input
+              key={`${key}:${mine ?? ""}:${Number.isFinite(v) ? v.toFixed(5) : ""}`}
+              className={`cell year ${mine != null ? "override" : ""}`}
+              type="number"
+              step="0.5"
+              aria-label={`${label}, year ${i + 1}`}
+              defaultValue={Number.isFinite(v) ? +(v * 100).toFixed(2) : ""}
+              onKeyDown={enterBlurs}
+              onBlur={(e) => {
+                const raw = e.target.value.trim();
+                if (raw === e.target.defaultValue) return; // unchanged
+                if (raw === "") return onSet(key, null); // blank = back to the assumption-driven value
+                const next = Number(raw) / 100;
+                if (Number.isFinite(next)) onSet(key, next);
+              }}
+            />
+          </td>
+        );
+      })}
+      <td className="num small">{term ?? ""}</td>
+    </tr>
   );
 }
 

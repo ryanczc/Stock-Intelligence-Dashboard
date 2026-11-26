@@ -1,0 +1,53 @@
+{
+  "symbol": "ATAT",
+  "asOf": "2026-11-22",
+  "summary": "Atour: Chinese mid-to-upscale hotel franchisor with a fast-growing retail (sleep products) arm. Asset-light, high cash returns, pays dividends; China consumer and country risk apply.",
+  "base": {
+    "growthHigh": 0.15,
+    "targetMargin": 0.22,
+    "marginConvergenceYear": 3,
+    "salesToCapital": 3,
+    "failureProbability": 0
+  },
+  "bear": {
+    "growthHigh": 0.08,
+    "targetMargin": 0.18
+  },
+  "bull": {
+    "growthHigh": 0.2,
+    "targetMargin": 0.25
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 15,
+  "rationale": {
+    "growthHigh": "Hotel openings (~20% a year) plus retail growing faster; ~15% blended as the base grows.",
+    "targetMargin": "Current operating margin ~22%; franchise model keeps it there.",
+    "salesToCapital": "Franchisees fund most hotels, so little capital is needed.",
+    "exitMultiple": "15x: China consumer names trade at a discount to US peers for country risk."
+  },
+  "thesis": {
+    "text": "Atour runs a franchise-led upscale hotel chain in China and sells its hotel sleep products (pillows, bedding) through retail. Asset-light, high returns, net cash and a growing dividend.",
+    "bull": [
+      "Retail arm growing fast with high margins",
+      "Franchise model needs little capital",
+      "Shareholder returns (dividends, buybacks)"
+    ],
+    "bear": [
+      "China consumer slowdown and hotel price (RevPAR) pressure",
+      "US-China delisting or tariff risk for the ADR",
+      "Brand competition (Huazhu, Jinjiang)"
+    ],
+    "watch": [
+      "RevPAR trend",
+      "Retail revenue growth",
+      "Dividend/buyback announcements"
+    ]
+  },
+  "sources": [],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

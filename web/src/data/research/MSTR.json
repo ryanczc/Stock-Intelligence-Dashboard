@@ -1,0 +1,22 @@
+{
+  "symbol": "MSTR",
+  "asOf": "2026-11-22",
+  "summary": "Strategy (MicroStrategy) is a bitcoin treasury company: almost all value is the bitcoin it holds minus debt and preferred stock. A revenue DCF doesn't capture this. Value it as bitcoin holdings x BTC price, minus debt and preferred, divided by diluted shares; then compare to the share price (mNAV).",
+  "noDcf": true,
+  "thesis": {
+    "text": "Strategy (MicroStrategy) is a bitcoin treasury company: almost all value is the bitcoin it holds minus debt and preferred stock. A revenue DCF doesn't capture this. Value it as bitcoin holdings x BTC price, minus debt and preferred, divided by diluted shares; then compare to the share price (mNAV).",
+    "bull": [],
+    "bear": [],
+    "watch": [
+      "Holdings per share vs share price (mNAV)",
+      "Debt and preferred stock issued"
+    ]
+  },
+  "sources": [],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

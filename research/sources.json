@@ -1,0 +1,4 @@
+{
+  "_about": "Extra websites the weekly Claude research should check, on top of free public sources (company results and investor-relations pages, SEC EDGAR, SGX and HKEX announcements, and mainstream financial news). Add sites as plain domains or full URLs, e.g. \"seekingalpha.com\" or \"https://www.theedgesingapore.com\". Paywalled pages can't be read.",
+  "extraSites": []
+}

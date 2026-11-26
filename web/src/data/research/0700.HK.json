@@ -1,0 +1,44 @@
+{
+  "symbol": "0700.HK",
+  "asOf": "2026-11-22",
+  "summary": "Tencent: WeChat, games, ads, fintech and cloud; steady double-digit profit growth and buybacks.",
+  "base": {
+    "growthHigh": 0.09,
+    "targetMargin": 0.35,
+    "marginConvergenceYear": 3,
+    "salesToCapital": 1.8,
+    "failureProbability": 0
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 18,
+  "rationale": {
+    "growthHigh": "Games, ads (AI targeting) and payments: ~9% revenue growth.",
+    "targetMargin": "Operating margin ~33% and rising as high-margin ads and games grow.",
+    "exitMultiple": "18x: China discount to US platform peers."
+  },
+  "thesis": {
+    "text": "Tencent combines WeChat, games, ads and payments; AI improves ad targeting and buybacks are large.",
+    "bull": [
+      "Games and ads growing double digits",
+      "Large buybacks",
+      "Cloud and AI upside"
+    ],
+    "bear": [
+      "China regulation",
+      "US-China tensions",
+      "Gaming approval cycles"
+    ],
+    "watch": [
+      "Ad revenue growth",
+      "Game launches",
+      "Buyback pace"
+    ]
+  },
+  "sources": [],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

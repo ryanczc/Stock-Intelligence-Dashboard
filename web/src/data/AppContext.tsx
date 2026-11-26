@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { Session } from "@supabase/supabase-js";
 import { LocalStore, SupabaseStore, supabase, uid, type AppData, type DataStore } from "./store";
 import { computeHoldings, totals, type Holding } from "../lib/portfolio";
-import { valueSymbol, type SimpleTarget, type Valuation } from "../lib/valuation";
+import { claudeCase, valueSymbol, type SimpleTarget, type Valuation } from "../lib/valuation";
 import type { Transaction } from "../lib/types";
 
 interface Ctx {
@@ -81,7 +81,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const comps = (settings?.comps ?? []).map((c) => data.market[c]).filter(Boolean);
       let v: Valuation | SimpleTarget | null = null;
       try {
-        v = valueSymbol(data.market[symbol], data.reference, data.fx, settings, comps, data.instruments[symbol]);
+        v = valueSymbol(data.market[symbol], data.reference, data.fx, settings, comps, data.instruments[symbol], claudeCase(symbol));
       } catch (e) {
         console.error("valuation failed", symbol, e);
       }
@@ -122,6 +122,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       for (const w of ["AAPL", "D05.SI", "C38U.SI", "0700.HK"]) await s.setWatch(w, true);
       await s.saveInstrument({ symbol: "BTC-USD", asset_class: "crypto", extra: { targetPrice5y: 150000 } });
       await s.saveInstrument({ symbol: "CASH-SGD", name: "Cash (SGD)", asset_class: "cash", currency: "SGD", manual_price: 1 });
+      const dec = (symbol: string, decision_date: string, action: "buy" | "trim" | "pass", price: number, target: number, stop: number, conviction: number, thesis: string) =>
+        s.saveDecision({ id: uid(), symbol, decision_date, action, price, target_price: target, stop_price: stop, conviction, horizon_months: 24, thesis });
+      await dec("VST", "2025-03-04", "buy", 128, 190, 95, 4, "Sample: data-centre power contracts re-rate gas + nuclear fleet; buybacks.");
+      await dec("SOFI", "2025-01-15", "buy", 14.2, 22, 10, 3, "Sample: bank charter lowers funding cost; member growth compounding.");
+      await dec("SE", "2025-04-22", "buy", 118, 170, 95, 5, "Sample: Shopee profitability inflecting; Monee lending scaling.");
+      await s.saveInstrument({ symbol: "SOFI", extra: { tripwires: [{ id: uid(), metric: "revenueGrowth", op: "<", value: 0.2, note: "Sample: thesis needs 20%+ growth" }] } });
       await s.saveThesis("VST", "Sample note: power demand from data centres; watch hedged margins and buyback pace.");
     });
   }, [mutate]);

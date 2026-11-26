@@ -1,0 +1,59 @@
+{
+  "symbol": "FPS",
+  "asOf": "2026-11-22",
+  "summary": "Forgent Power Solutions: US maker of electrical distribution gear (switchgear, transformers) for data centres and utilities. FY26 (Jun) revenue $1.42B, +89%; FY27 guide $2.4-2.6B (+76%); backlog $3.0B (+256%); capacity to ~$5.8B after 2027 expansion.",
+  "base": {
+    "growthHigh": 0.32,
+    "targetMargin": 0.19,
+    "marginConvergenceYear": 3,
+    "salesToCapital": 2.5,
+    "failureProbability": 0.02
+  },
+  "bear": {
+    "growthHigh": 0.18,
+    "targetMargin": 0.15
+  },
+  "bull": {
+    "growthHigh": 0.42,
+    "targetMargin": 0.22
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 25,
+  "rationale": {
+    "growthHigh": "FY27 guide +76%, then slows as capacity (~$5.8B) fills; ~32% average over 5 years reaches ~$6B revenue.",
+    "targetMargin": "Q4 FY26 GAAP operating margin ~20%, adjusted EBITDA margin ~24%; assume ~19% through the cycle.",
+    "salesToCapital": "Factory expansions are modest relative to sales; ~$2.5 revenue per $1 invested.",
+    "failureProbability": "Recently IPO'd with debt, but strong backlog; small risk.",
+    "exitMultiple": "25x: electrical equipment peers (Eaton, Vertiv, Powell) trade ~25-35x, discounted for cyclicality by year 5."
+  },
+  "thesis": {
+    "text": "Forgent makes the electrical gear (switchgear, transformers, power distribution) that every new data centre and grid upgrade needs. Orders are far ahead of capacity, so growth is set by how fast it can add factories.",
+    "bull": [
+      "Backlog $3.0B (+256%), FY27 revenue guide +76%",
+      "Capacity expansion to ~$5.8B revenue in 2027",
+      "Margins rising with scale (Q4 GAAP operating margin ~20%)"
+    ],
+    "bear": [
+      "Data-centre capex cycle could slow",
+      "Execution risk on rapid factory expansion",
+      "Newly listed with sponsor ownership and debt"
+    ],
+    "watch": [
+      "Quarterly orders and backlog",
+      "FY27 adjusted EBITDA guide $575-625M",
+      "New factory start-up (Q4 FY27)"
+    ]
+  },
+  "sources": [
+    {
+      "title": "Forgent FY2026 results",
+      "url": "https://finviz.com/news/391939/forgent-reports-record-fourth-quarter-and-full-year-2026-results-exceeds-high-end-of-guidance-and-enters-fiscal-2027-with-all-time-high-backlog"
+    }
+  ],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

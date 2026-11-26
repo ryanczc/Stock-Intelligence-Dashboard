@@ -1,0 +1,57 @@
+{
+  "symbol": "SOFI",
+  "asOf": "2026-11-22",
+  "summary": "Digital bank (lending, deposits, Galileo tech platform). Q3 2026 revenue +44%, 17.1M members. FY26 guide: ~$840M net income; 2027 guide: ~$6.4B revenue and ~$1.28B net income (20% margin), adjusted EPS ~$0.90.",
+  "base": {
+    "roeCurrent": 0.12,
+    "roeStable": 0.13,
+    "payoutRatio": 0,
+    "stableGrowth": 0.035
+  },
+  "bear": {
+    "roeCurrent": 0.08,
+    "roeStable": 0.1
+  },
+  "bull": {
+    "roeCurrent": 0.15,
+    "roeStable": 0.15
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 20,
+  "rationale": {
+    "roeCurrent": "2027 net income guide ~$1.28B on roughly $10-11B of equity gives ~12%; rises as revenue grows faster than capital.",
+    "roeStable": "Mature digital bank with low branch costs earns a little more than the ~11-12% bank average.",
+    "payoutRatio": "No dividend; all earnings retained to grow the loan book.",
+    "exitMultiple": "20x year-5 earnings: above banks (~11-13x) for 20%+ growth, below fintech platforms."
+  },
+  "thesis": {
+    "text": "SoFi is a profitable, fast-growing digital bank. A bank charter gives it cheap deposits; the opportunity is selling more products (loans, investing, cards) to 17M+ members. Credit quality is the key risk.",
+    "bull": [
+      "Revenue +44% in Q3 2026; 2027 guidance of ~$6.4B revenue and ~$1.28B net income",
+      "Cheap deposit funding from the bank charter",
+      "Galileo/Technisys tech platform adds fee income"
+    ],
+    "bear": [
+      "Personal-loan credit losses in a downturn",
+      "Valuation already prices in strong growth",
+      "Dilution from capital raises"
+    ],
+    "watch": [
+      "Member and product growth each quarter",
+      "Personal-loan charge-off rate",
+      "Delivery of 2027 guidance"
+    ]
+  },
+  "sources": [
+    {
+      "title": "SoFi Q3 2026 earnings release",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001818874/000181887426000065/a2026q3earningsrelease.htm"
+    }
+  ],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

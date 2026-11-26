@@ -1,0 +1,42 @@
+{
+  "symbol": "D05.SI",
+  "asOf": "2026-11-22",
+  "summary": "DBS: Singapore's largest bank, high ROE, generous dividends; earnings ease as interest rates fall.",
+  "base": {
+    "roeCurrent": 0.16,
+    "roeStable": 0.13,
+    "payoutRatio": 0.6,
+    "stableGrowth": 0.03
+  },
+  "exitMetric": "pe",
+  "exitMultiple": 12,
+  "rationale": {
+    "roeCurrent": "ROE ~17% recently; falling rates trim it to ~16%.",
+    "roeStable": "Long-run ROE for a top Asian bank.",
+    "payoutRatio": "Ordinary plus capital-return dividends ~60% of earnings.",
+    "exitMultiple": "12x: DBS's historical range."
+  },
+  "thesis": {
+    "text": "DBS is Singapore's largest bank with industry-leading ROE and a high, growing dividend; falling interest rates will trim net interest margin.",
+    "bull": [
+      "ROE ~16-17%",
+      "Wealth fees growing",
+      "Capital return programme"
+    ],
+    "bear": [
+      "Lower rates compress NIM",
+      "Asia credit cycle"
+    ],
+    "watch": [
+      "Quarterly NIM",
+      "Dividend per share"
+    ]
+  },
+  "sources": [],
+  "changes": [
+    {
+      "date": "2026-11-22",
+      "text": "First Claude base case and thesis."
+    }
+  ]
+}

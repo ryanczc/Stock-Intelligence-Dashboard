@@ -13,7 +13,7 @@ import sys
 import time
 
 from . import alerts as alerts_mod
-from . import coingecko, damodaran, yahoo
+from . import coingecko, damodaran, tripwires, yahoo
 
 ROOT = pathlib.Path(__file__).resolve().parent
 REFERENCE_MAX_AGE_DAYS = 7
@@ -98,9 +98,15 @@ def main(argv: list[str] | None = None) -> int:
     new_alerts: list[dict] = []
     for d in docs:
         new_alerts += alerts_mod.make_alerts(d, today)
+    instruments = []
     if store:
         events += store.custom_events()
+        instruments = store.instruments()
     new_alerts += alerts_mod.macro_alerts(events, today)
+    new_alerts += tripwires.tripwire_alerts(instruments, {d["symbol"]: d for d in docs}, today)
+
+    benchmarks = yahoo.fetch_benchmarks()
+    print(f"benchmarks: { {k: len(v) for k, v in benchmarks.items()} }")
 
     if args.out:
         pathlib.Path(args.out).write_text(json.dumps({"market": docs, "fx": fx, "reference": ref, "alerts": new_alerts}, default=str))
@@ -111,6 +117,8 @@ def main(argv: list[str] | None = None) -> int:
         store.save_market_data(docs)
         store.save_reference("fx", {"rates": fx, "updatedAt": dt.datetime.now(dt.timezone.utc).isoformat()})
         store.save_reference("macro", {"events": load_config_events()})
+        if benchmarks:
+            store.save_reference("benchmarks", benchmarks)
         if ref and (ref.get("industries", {}).get("US") or ref.get("countries")):
             store.save_reference("damodaran", ref)
         for tx in store.transactions_missing_fx():

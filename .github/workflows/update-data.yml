@@ -13,6 +13,9 @@ on:
 
 concurrency: update-data
 
+permissions:
+  contents: write   # lets the job publish the ticker list to the `data` branch for the weekly research
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -32,3 +35,10 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python -m pipeline.run ${{ inputs.reference && '--reference' || '' }}
+      - name: Publish tracked tickers for the weekly Claude research
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m pipeline.universe

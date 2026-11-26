@@ -99,3 +99,38 @@ def test_key_problem():
     assert "anon" in key_problem(jwt("anon"))
     assert key_problem("sb_secret_abc") is None
     assert "publishable" in key_problem("sb_publishable_abc")
+
+
+def test_universe_build_nets_sells_and_skips_cash():
+    from pipeline.universe import build
+
+    class FakeStore:
+        def _get(self, table, params):
+            return {
+                "transactions": [
+                    {"symbol": "NOW", "type": "buy", "quantity": 10},
+                    {"symbol": "SOFI", "type": "buy", "quantity": 5},
+                    {"symbol": "SOFI", "type": "sell", "quantity": 5},
+                    {"symbol": "CASH-SGD", "type": "buy", "quantity": 1},
+                ],
+                "watchlist": [{"symbol": "AAPL"}, {"symbol": "NOW"}],
+                "instruments": [{"symbol": "CASH-SGD", "asset_class": "cash"}],
+            }[table]
+
+    assert build(FakeStore()) == {"holdings": ["NOW"], "watchlist": ["AAPL"]}
+
+
+def test_tripwire_alerts():
+    import datetime as dt
+    from pipeline.tripwires import tripwire_alerts
+
+    docs = {"NOW": {"symbol": "NOW", "price": 80.0, "fundamentals": {"revenueGrowthYoy": 0.12, "ebitTtm": 10, "revenueTtm": 100}}}
+    ins = [{"symbol": "NOW", "extra": {"dcfValue": 100.0, "tripwires": [
+        {"id": "a", "metric": "revenueGrowth", "op": "<", "value": 0.15, "note": "thesis needs 15%+"},
+        {"id": "b", "metric": "operatingMargin", "op": "<", "value": 0.05},
+        {"id": "c", "metric": "priceToDcf", "op": "<", "value": 0.85},
+        {"id": "d", "metric": "bogus", "op": "<", "value": 1},
+    ]}}]
+    out = tripwire_alerts(ins, docs, dt.date(2026, 11, 23))
+    assert [a["dedupe_key"] for a in out] == ["trip:NOW:a:2026-W48", "trip:NOW:c:2026-W48"]
+    assert "now 12.0%" in out[0]["message"] and "thesis needs 15%+" in out[0]["message"]

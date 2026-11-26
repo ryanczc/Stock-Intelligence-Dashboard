@@ -159,3 +159,35 @@ export interface ValuationSettings {
   model?: string; // force a model
   industry?: string; // Damodaran industry override
 }
+
+/** A logged investment decision (buy/add/trim/sell/pass) with the reasoning at the time, for later post-mortems. */
+export interface Decision {
+  id: string;
+  symbol: string;
+  decision_date: string; // YYYY-MM-DD
+  action: "buy" | "add" | "trim" | "sell" | "pass";
+  price: number; // trading currency
+  thesis: string;
+  target_price?: number | null;
+  stop_price?: number | null;
+  conviction?: number | null; // 1-5
+  horizon_months?: number | null;
+  dcf_value?: number | null; // probability-weighted DCF value when the decision was logged
+  review?: string | null;
+  outcome?: "good-good" | "good-bad" | "bad-good" | "bad-bad" | null; // decision quality - outcome
+  reviewed_at?: string | null;
+}
+
+export type TripMetric = "revenueGrowth" | "operatingMargin" | "netMargin" | "fcfMargin" | "roe" | "pe" | "price" | "priceToDcf" | "drawdown";
+
+/** A thesis tripwire: flag when a metric crosses a threshold. Stored in instruments.extra.tripwires. */
+export interface Tripwire {
+  id: string;
+  metric: TripMetric;
+  op: "<" | ">";
+  value: number; // decimals for % metrics (0.2 = 20%)
+  note?: string;
+}
+
+/** Weekly closes of benchmarks for beta and stress tests (reference_data key "benchmarks"). */
+export type Benchmarks = Record<string, [string, number][]>;

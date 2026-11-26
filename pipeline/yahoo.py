@@ -424,3 +424,19 @@ def risk_free_us(yf_module=None) -> float | None:
         return float(h["Close"].dropna().iloc[-1]) / 100.0
     except Exception:  # noqa: BLE001
         return None
+
+
+BENCHMARKS = {"NDX": "^NDX", "SPX": "^GSPC", "BTC": "BTC-USD"}
+
+
+def fetch_benchmarks(yf_module=None) -> dict[str, list]:
+    """Weekly closes (2 years) for the risk page's betas and stress tests."""
+    yf = yf_module or __import__("yfinance")
+    out: dict[str, list] = {}
+    for key, ticker in BENCHMARKS.items():
+        try:
+            h = yf.Ticker(ticker).history(period="2y", interval="1wk", auto_adjust=False)
+            out[key] = [[_iso(i), round(float(c), 4)] for i, c in h["Close"].dropna().items()]
+        except Exception:  # noqa: BLE001
+            pass
+    return out

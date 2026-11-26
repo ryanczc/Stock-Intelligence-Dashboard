@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useApp } from "../data/AppContext";
 import { uid } from "../data/store";
 import type { MarketData, ValuationSettings } from "../lib/types";
-import { DEFAULT_PROBABILITIES, EXIT_METRICS, allowedExitMetrics, compMultiple, type ExitMetric, type SimpleTarget, type Valuation } from "../lib/valuation";
+import { DEFAULT_PROBABILITIES, EXIT_METRICS, allowedExitMetrics, claudeCase, compMultiple, type ClaudeCase, type ExitMetric, type SimpleTarget, type Valuation } from "../lib/valuation";
 import { compact, daysUntil, money, num, pct, tone } from "../lib/format";
 
 // ---------------------------------------------------------------------------------------------
@@ -19,7 +19,10 @@ export function TargetPanel({ symbol, v, settings }: { symbol: string; v: Valuat
   return (
     <div className="stack">
       <div className="grid kpis">
-        <div className="card kpi"><div className="label">Year-5 {EXIT_METRICS[e.metric].label.split("/")[1]} per share</div><div className="value">{num(e.metricValueYear5)}</div><div className="sub muted">{rep}, base case</div></div>
+        {e.metric === "pe" && e.netIncomeYear5 != null && (
+          <div className="card kpi"><div className="label">Year-5 net income</div><div className="value">{compact(e.netIncomeYear5)}</div><div className="sub muted">{rep}, base case</div></div>
+        )}
+        <div className="card kpi"><div className="label">Year-5 {EXIT_METRICS[e.metric].metricLabel}</div><div className="value">{num(e.metricValueYear5)}</div><div className="sub muted">{rep}, base case</div></div>
         <div className="card kpi"><div className="label">Exit multiple</div><div className="value">{num(e.multiple, 1)}x</div><div className="sub muted">{e.multipleSource}</div></div>
         <div className="card kpi"><div className="label">5-year price target</div><div className="value">{money(e.priceTarget)}</div><div className="sub muted">{trd} · plus {money(e.dividends5y)} dividends</div></div>
         <div className="card kpi"><div className="label">CAGR (total return)</div><div className={`value ${tone(e.cagr)}`}>{pct(e.cagr, 1, true)}</div><div className="sub muted">from {money(v.price)}</div></div>
@@ -27,6 +30,14 @@ export function TargetPanel({ symbol, v, settings }: { symbol: string; v: Valuat
 
       <div className="card">
         <h2>Exit multiple</h2>
+        <p className="small">
+          5-year target = year-5 {EXIT_METRICS[e.metric].metricLabel} {num(e.metricValueYear5)} {rep} × {num(e.multiple, 1)}x
+          {e.metric === "evEbitda" ? " − net debt per share" : ""}
+          {rep !== trd ? `, converted to ${trd}` : ""} = <b>{money(e.priceTarget, trd)}</b>. The year-5 figure comes from the base case growth and margins on the Valuation tab, so changing those changes the target.
+        </p>
+        {v.claude?.exitMultiple != null && v.claude.rationale?.exitMultiple && (
+          <p className="small muted">Claude base case multiple ({v.claude.exitMultiple}x {EXIT_METRICS[(v.claude.exitMetric ?? "pe") as ExitMetric]?.label}): {v.claude.rationale.exitMultiple}</p>
+        )}
         <div className="form-grid">
           <label className="field">
             Metric
@@ -35,7 +46,7 @@ export function TargetPanel({ symbol, v, settings }: { symbol: string; v: Valuat
             </select>
           </label>
           <label className="field">
-            Your multiple (blank = median of candidates)
+            Your multiple (blank = {v.claude?.exitMultiple ? "Claude base case" : "median of candidates"})
             <input
               key={e.metric}
               type="number"
@@ -117,9 +128,17 @@ export function SimplePanel({ symbol, v, md }: { symbol: string; v: SimpleTarget
       </div>
       <div className="card">
         <h2>Your inputs</h2>
+        {v?.claude && (
+          <div className="banner small" style={{ marginBottom: 8 }}>
+            <b>Claude base case ({v.claude.asOf}):</b> {v.claude.summary}{" "}
+            <button className="ghost" onClick={() => mutate((st) => st.saveValuation(symbol, { ...(data!.valuations[symbol] ?? { overrides: {}, probabilities: DEFAULT_PROBABILITIES }), model: "fcff" }))}>Run a DCF anyway</button>
+          </div>
+        )}
         <p className="small muted">
           {md?.assetClass === "crypto"
             ? "Crypto has no cash flows to discount, so there is no DCF. Set your own 5-year target."
+            : v?.claude?.noDcf
+            ? "Set your own 5-year target from the holdings-based value above, or run a DCF anyway."
             : "No DCF for ETFs, cash or bonds. Set a 5-year target, and a manual price if the data feed has none (bonds, fixed deposits)."}
         </p>
         <div className="form-grid">
@@ -214,7 +233,14 @@ export function NotesPanel({ symbol }: { symbol: string }) {
   const journal = data!.journal.filter((j) => j.symbol === symbol).sort((a, b) => b.entry_date.localeCompare(a.entry_date));
   const tags = [...new Set(journal.flatMap((j) => j.tags))];
   const dirty = thesis !== (data!.notes[symbol] ?? "");
+  const cc = claudeCase(symbol);
   return (
+    <div className="stack">
+    {cc ? (
+      <ClaudeThesisCard c={cc} onCopy={(text) => setThesis(thesis ? `${thesis}\n\n${text}` : text)} />
+    ) : (
+      <div className="card small muted">No Claude thesis for {symbol} yet. The weekly Claude research (Sundays) adds every stock you hold or watch.</div>
+    )}
     <div className="grid halves">
       <div className="card">
         <div className="row between">
@@ -257,6 +283,51 @@ export function NotesPanel({ symbol }: { symbol: string }) {
           {!journal.length && <li className="muted">No entries yet.</li>}
         </ul>
       </div>
+    </div>
+    </div>
+  );
+}
+
+function bulletText(c: ClaudeCase) {
+  const t = c.thesis!;
+  const list = (title: string, xs: string[]) => (xs.length ? `\n${title}:\n${xs.map((x) => `- ${x}`).join("\n")}` : "");
+  return `${t.text}${list("Bull points", t.bull)}${list("Risks", t.bear)}${list("Watch", t.watch)}\n(From Claude's thesis, ${c.asOf})`;
+}
+
+export function ClaudeThesisCard({ c, onCopy }: { c: ClaudeCase; onCopy?: (text: string) => void }) {
+  const [showLog, setShowLog] = useState(false);
+  const t = c.thesis;
+  if (!t) return null;
+  const changes = [...(c.changes ?? [])].sort((a, b) => b.date.localeCompare(a.date));
+  return (
+    <div className="card claude-card">
+      <div className="row between">
+        <h2>Claude's thesis <span className="muted small">· updated {c.asOf}</span></h2>
+        {onCopy && <button className="ghost" onClick={() => onCopy(bulletText(c))} title="Adds this text to your thesis box below; nothing is saved until you click Save">Copy into my thesis</button>}
+      </div>
+      <p style={{ marginTop: 6 }}>{t.text}</p>
+      <div className="grid three-col small">
+        <div><b className="pos">Bull points</b><ul>{t.bull.map((x) => <li key={x}>{x}</li>)}</ul></div>
+        <div><b className="neg">Risks</b><ul>{t.bear.map((x) => <li key={x}>{x}</li>)}</ul></div>
+        <div><b>What to watch</b><ul>{t.watch.map((x) => <li key={x}>{x}</li>)}</ul></div>
+      </div>
+      {changes[0] && (
+        <div className="small" style={{ marginTop: 8 }}>
+          <b>Latest change ({changes[0].date}):</b> {changes[0].text}{" "}
+          {changes.length > 1 && <button className="ghost" onClick={() => setShowLog(!showLog)}>{showLog ? "Hide" : "Show"} history ({changes.length})</button>}
+        </div>
+      )}
+      {showLog && (
+        <ul className="list small">
+          {changes.slice(1).map((x, i) => <li key={i}><span className="when">{x.date}</span><span>{x.text}</span></li>)}
+        </ul>
+      )}
+      {!!c.sources?.length && (
+        <div className="small muted" style={{ marginTop: 8 }}>
+          Sources: {c.sources.map((x, i) => <span key={x.url}>{i > 0 && " · "}<a href={x.url} target="_blank" rel="noreferrer">{x.title}</a></span>)}
+        </div>
+      )}
+      <p className="small muted" style={{ marginTop: 8 }}>Claude's view is kept separate from yours. It refreshes weekly through a pull request you approve; your own thesis and journal are never changed.</p>
     </div>
   );
 }

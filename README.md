@@ -46,3 +46,19 @@ browser storage. See [docs/SETUP.md](docs/SETUP.md) to go live.
 cd web && npm test            # valuation, holdings and CSV import
 python -m pytest pipeline/tests
 ```
+
+## Claude base case
+
+`web/src/data/research/<SYMBOL>.json` holds researched default assumptions, a thesis and a change log per ticker (growth, margins, reinvestment,
+risk, exit multiple), each with a one-line reason and a date. On a stock's page they replace the automatic
+data defaults; anything you type in "Your value" overrides them, and clearing the box goes back to them.
+A weekly Claude routine refreshes these files and opens a pull request (see `research/ROUTINE.md`); merging it redeploys the site.
+
+## Portfolio-manager tools
+- **Decisions** tab on each stock: log buy/add/trim/sell/pass with thesis, target, stop, conviction and horizon (your DCF value is
+  saved with it). Write a post-mortem later. Needs `supabase/add-decisions.sql` run once in the Supabase SQL Editor.
+- **Review** page: hit rate, returns vs targets and the Nasdaq, conviction vs results, and whether targets and DCF values run hot or cold.
+- **Tripwires** tab on each stock: thresholds on revenue growth, margins, ROE, P/E, price, price vs DCF and drawdown. Checked live
+  and after every data refresh (`pipeline/tripwires.py`); crossings show on the Dashboard and go to Telegram.
+- **Risk** page: exposure by asset class, sector, country and currency; correlation matrix; beta to the Nasdaq and bitcoin
+  (2-year weekly regression against benchmarks saved by the data job); stress tests (Nasdaq -20%, bitcoin -40%, USD/SGD -10%, combined).

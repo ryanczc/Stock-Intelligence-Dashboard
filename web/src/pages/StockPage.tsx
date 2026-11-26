@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useApp } from "../data/AppContext";
 import { ValuationPanel } from "../components/ValuationPanel";
 import { ActivityPanel, NotesPanel, SimplePanel, TargetPanel } from "../components/StockPanels";
+import { DecisionsPanel, TripwiresPanel } from "../components/PmPanels";
+import { checkTripwire, tripwiresOf } from "../lib/tripwires";
 import { Pct, Sparkline } from "../components/common";
 import { ago, compact, money, num, pct, tone } from "../lib/format";
 
-type Tab = "valuation" | "target" | "activity" | "notes";
+type Tab = "valuation" | "target" | "activity" | "notes" | "decisions" | "tripwires";
 
 export default function StockPage() {
   const symbol = decodeURIComponent(useParams().symbol ?? "").toUpperCase();
   const { data, holdings, valuation, mutate, store } = useApp();
-  const [tab, setTab] = useState<Tab>("valuation");
+  const [tabState, setTab] = useState<Tab>("valuation");
   const md = data!.market[symbol];
   const v = valuation(symbol);
   const h = holdings.find((x) => x.symbol === symbol);
@@ -19,6 +21,19 @@ export default function StockPage() {
   const settings = data!.valuations[symbol];
   const day = md?.price && md.prevClose ? md.price / md.prevClose - 1 : null;
   const isModel = v?.kind === "model";
+  // the 5y target tab only exists for modelled stocks; fall back when switching to e.g. a crypto page
+  const tab: Tab = tabState === "target" && !isModel ? "valuation" : tabState;
+  const inst = data!.instruments[symbol];
+  const wires = tripwiresOf(inst);
+  const dcf = v?.kind === "model" && Number.isFinite(v.weightedValue) ? v.weightedValue : null;
+  const crossed = wires.filter((w) => checkTripwire(symbol, w, md, dcf).breached).length;
+  // Keep the DCF value the twice-daily tripwire check uses in step with what you see here.
+  const savedDcf = inst?.extra?.dcfValue as number | undefined;
+  useEffect(() => {
+    if (!inst || !dcf || !wires.some((w) => w.metric === "priceToDcf")) return;
+    if (savedDcf && Math.abs(dcf / savedDcf - 1) < 0.01) return;
+    mutate((s) => s.saveInstrument({ ...inst, extra: { ...(inst.extra ?? {}), dcfValue: dcf, dcfAt: new Date().toISOString().slice(0, 10) } }));
+  }, [symbol, dcf, savedDcf]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="stack">
@@ -58,9 +73,10 @@ export default function StockPage() {
       </div>
 
       <div className="tabs" role="tablist">
-        {(["valuation", "target", "activity", "notes"] as Tab[]).map((t) => (
+        {(["valuation", "target", "activity", "notes", "decisions", "tripwires"] as Tab[]).map((t) => (
           <button key={t} className={tab === t ? "active" : ""} onClick={() => setTab(t)} role="tab" aria-selected={tab === t}>
-            {{ valuation: isModel ? "DCF valuation" : "Target", target: "5y target & CAGR", activity: "Events & activity", notes: "Notes" }[t]}
+            {{ valuation: isModel ? "DCF valuation" : "Target", target: "5y target & CAGR", activity: "Events & activity", notes: "Notes", decisions: "Decisions", tripwires: "Tripwires" }[t]}
+            {t === "tripwires" && crossed > 0 && <span className="chip warn" style={{ marginLeft: 6 }}>{crossed}</span>}
           </button>
         )).filter((_, i) => isModel || i !== 1)}
       </div>
@@ -69,6 +85,8 @@ export default function StockPage() {
       {tab === "target" && isModel && <TargetPanel symbol={symbol} v={v} settings={settings} />}
       {tab === "activity" && <ActivityPanel symbol={symbol} md={md} />}
       {tab === "notes" && <NotesPanel symbol={symbol} />}
+      {tab === "decisions" && <DecisionsPanel symbol={symbol} md={md} v={v} />}
+      {tab === "tripwires" && <TripwiresPanel symbol={symbol} md={md} v={v} />}
       {md?.gaps && md.gaps.length > 0 && <details className="small"><summary>Data gaps for this symbol</summary><ul>{md.gaps.map((g) => <li key={g}>{g}</li>)}</ul></details>}
     </div>
   );

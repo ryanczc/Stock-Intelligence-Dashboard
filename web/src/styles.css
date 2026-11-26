@@ -60,7 +60,8 @@ main { max-width: 1440px; margin: 0 auto; padding: 20px; }
 @media (max-width: 760px) {
   .topbar { padding: 10px 16px; backdrop-filter: none; background: var(--bg); }
   .topbar .nav { position: fixed; bottom: 0; left: 0; right: 0; justify-content: space-around; background: var(--panel); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
-  .nav a { font-size: 12px; padding: 6px 8px; }
+  .nav a { font-size: 11px; padding: 6px 6px; white-space: nowrap; }
+  .topbar .nav { overflow-x: auto; justify-content: flex-start; scrollbar-width: none; }
   main { padding: 16px 16px 90px; }
 }
 
@@ -107,7 +108,7 @@ button:disabled { opacity: .5; cursor: default; }
 label.field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
 label.field > input, label.field > select { color: var(--text); font-size: 14px; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; align-items: end; }
-input.override { border-color: var(--accent); }
+input.override { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
 input.cell { width: 100px; text-align: right; font-family: var(--mono); }
 
 /* tabs & chips */
@@ -133,3 +134,27 @@ input.cell { width: 100px; text-align: right; font-family: var(--mono); }
 details summary { cursor: pointer; color: var(--muted); }
 .spark { display: block; }
 .tip { border-bottom: 1px dotted var(--muted); cursor: help; }
+
+/* Claude research + calendar */
+.claude-card { border-left: 3px solid var(--accent); }
+.claude-card ul { margin: 4px 0 0; padding-left: 18px; }
+.three-col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 8px; }
+@media (max-width: 760px) { .three-col { grid-template-columns: minmax(0, 1fr); } }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.cal .dow { padding: 6px; font-size: 11px; color: var(--muted); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel-2); }
+.cal .day { min-height: 92px; padding: 4px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cal .day.other { opacity: 0.45; }
+.cal .day.today { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.cal .num-day { font-size: 11px; color: var(--muted); }
+.cal .ev { font-size: 11px; line-height: 1.3; padding: 1px 4px; border-radius: 4px; background: var(--panel-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; color: var(--text); }
+.cal .ev.earnings { color: var(--accent); }
+.cal .ev.macro { color: var(--warn); }
+.cal-list { display: none; }
+@media (max-width: 760px) { .cal { display: none; } .cal-list { display: block; } }
+.cell.year { width: 64px; text-align: right; padding: 3px 4px; font-size: 12px; }
+
+/* PM tools */
+button.card.kpi { cursor: pointer; font: inherit; color: inherit; border: 1px solid var(--line); }
+button.card.kpi.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+table.corr td, table.corr th { padding: 4px 6px; min-width: 44px; }
+.alloc span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
